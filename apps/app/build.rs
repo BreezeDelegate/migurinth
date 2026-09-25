@@ -14,6 +14,7 @@ fn main() {
                     .commands(&[
                         "check_reachable",
                         "login",
+                        "login_offline",
                         "remove_user",
                         "get_default_user",
                         "set_default_user",
@@ -382,27 +383,6 @@ fn main() {
                         "progress_bars_list",
                         "get_opening_command",
                         "get_image_thumbnail",
-                    ])
-                    .default_permission(
-                        DefaultPermissionRule::AllowAllCommands,
-                    ),
-            )
-            .plugin(
-                "ads",
-                InlinedPlugin::new()
-                    .commands(&[
-                        "init_ads_window",
-                        "hide_ads_window",
-                        "update_ads_window_hold",
-                        "show_ads_consent_ui",
-                        "expand_ads_consent_webview",
-                        "open_ads_consent_preferences",
-                        "finish_ads_consent_flow",
-                        "should_show_ads_consent_popup",
-                        "perform_ads_consent_action",
-                        "record_ads_click",
-                        "open_link",
-                        "get_ads_personalization",
                     ])
                     .default_permission(
                         DefaultPermissionRule::AllowAllCommands,

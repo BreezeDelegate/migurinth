@@ -8,22 +8,12 @@
 
 import './omorphia.scss'
 
-import _FourOhFourNotFound from './branding/404.svg?component'
-// Branding
-import _BrowserWindowSuccessIllustration from './branding/illustrations/browser-window-success.svg?component'
-import _InviteBackgroundIllustration from './branding/illustrations/invite-bg.webp?url'
-import _ModrinthIcon from './branding/logo.svg?component'
-import _ModrinthPlusIcon from './branding/modrinth-plus.svg?component'
-import _AngryRinthbot from './branding/rinthbot/angry.webp'
-import _AnnoyedRinthbot from './branding/rinthbot/annoyed.webp'
-import _ConfusedRinthbot from './branding/rinthbot/confused.webp'
-import _ExcitedRinthbot from './branding/rinthbot/excited.webp'
-import _LaughingRinthbot from './branding/rinthbot/laughing.webp'
-import _SadRinthbot from './branding/rinthbot/sad.webp'
-import _SleepingRinthbot from './branding/rinthbot/sleeping.webp'
-import _SobbingRinthbot from './branding/rinthbot/sobbing.webp'
-import _ThinkingRinthbot from './branding/rinthbot/thinking.webp'
-import _WavingRinthbot from './branding/rinthbot/waving.webp'
+import _FourOhFourNotFound from './migurinth/404.svg?component'
+// Fork-safe branding
+import _BrowserWindowSuccessIllustration from './migurinth/success.svg?component'
+import _InviteBackgroundIllustration from './migurinth/invite-bg.svg?url'
+import _MigurinthIcon from './migurinth/mark.svg?component'
+import _MigurinthMarkUrl from './migurinth/mark.svg?url'
 // External Icons
 import _AppleIcon from './external/apple.svg?component'
 import _BlueskyIcon from './external/bluesky.svg?component'
@@ -83,21 +73,23 @@ import _NoMessagesIllustration from './illustrations/no-messages.svg?component'
 import _NoSearchResultIllustration from './illustrations/no-search-result.svg?component'
 import _NoTasksIllustration from './illustrations/no-tasks.svg?component'
 
-export const ModrinthIcon = _ModrinthIcon
+export const ModrinthIcon = _MigurinthIcon
+export const MigurinthIcon = _MigurinthIcon
+export const MigurinthMarkUrl = _MigurinthMarkUrl
 export const BrowserWindowSuccessIllustration = _BrowserWindowSuccessIllustration
 export const InviteBackgroundIllustration = _InviteBackgroundIllustration
 export const FourOhFourNotFound = _FourOhFourNotFound
-export const ModrinthPlusIcon = _ModrinthPlusIcon
-export const AngryRinthbot = _AngryRinthbot
-export const AnnoyedRinthbot = _AnnoyedRinthbot
-export const ConfusedRinthbot = _ConfusedRinthbot
-export const ExcitedRinthbot = _ExcitedRinthbot
-export const LaughingRinthbot = _LaughingRinthbot
-export const SadRinthbot = _SadRinthbot
-export const SleepingRinthbot = _SleepingRinthbot
-export const SobbingRinthbot = _SobbingRinthbot
-export const ThinkingRinthbot = _ThinkingRinthbot
-export const WavingRinthbot = _WavingRinthbot
+export const ModrinthPlusIcon = _MigurinthIcon
+export const AngryRinthbot = _MigurinthMarkUrl
+export const AnnoyedRinthbot = _MigurinthMarkUrl
+export const ConfusedRinthbot = _MigurinthMarkUrl
+export const ExcitedRinthbot = _MigurinthMarkUrl
+export const LaughingRinthbot = _MigurinthMarkUrl
+export const SadRinthbot = _MigurinthMarkUrl
+export const SleepingRinthbot = _MigurinthMarkUrl
+export const SobbingRinthbot = _MigurinthMarkUrl
+export const ThinkingRinthbot = _MigurinthMarkUrl
+export const WavingRinthbot = _MigurinthMarkUrl
 export const PayPalColorIcon = _PayPalColorIcon
 export const VenmoColorIcon = _VenmoColorIcon
 export const DiscordColorIcon = _DiscordColorIcon

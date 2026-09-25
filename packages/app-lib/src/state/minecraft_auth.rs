@@ -265,12 +265,21 @@ impl OnlineProfileCacheIntent {
 }
 
 impl Credentials {
+    pub fn is_offline(&self) -> bool {
+        self.access_token.starts_with("offline_token_")
+            && self.refresh_token.starts_with("offline_refresh_")
+    }
+
     /// Refreshes the authentication tokens for this user if they are expired, or
     /// very close to expiration.
     async fn refresh(
         &mut self,
         exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
     ) -> crate::Result<()> {
+        if self.is_offline() {
+            return Ok(());
+        }
+
         // Use a margin of 5 minutes to give e.g. Minecraft and potentially
         // other operations that depend on a fresh token 5 minutes to complete
         // from now, and deal with some classes of clock skew
@@ -351,6 +360,10 @@ impl Credentials {
         &self,
         cache_intent: OnlineProfileCacheIntent,
     ) -> Option<Arc<MinecraftProfile>> {
+        if self.is_offline() {
+            return None;
+        }
+
         let max_age = cache_intent.max_age();
         let stale_profile = {
             let mut profile_cache = PROFILE_CACHE.lock().await;
@@ -823,7 +836,7 @@ const MICROSOFT_CLIENT_ID: &str = "00000000402b5328";
 const AUTH_REPLY_URL: &str = "https://login.live.com/oauth20_desktop.srf";
 const REQUESTED_SCOPE: &str = "service::user.auth.xboxlive.com::MBI_SSL";
 pub const MINECRAFT_SERVICES_USER_AGENT: &str =
-    "Modrinth App (support@modrinth.com; https://modrinth.com/app)";
+    "Migurinth (https://github.com/BreezeDelegate/migurinth)";
 
 pub struct RequestWithDate<T> {
     pub date: DateTime<Utc>,

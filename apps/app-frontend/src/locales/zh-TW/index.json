@@ -3290,21 +3290,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "開啟"
   },
-  "app.survey.body": {
-    "message": "你方便回答幾個關於 Modrinth App 使用體驗的問題嗎？"
-  },
-  "app.survey.footer": {
-    "message": "你的回覆將直接傳送給 Modrinth 團隊，作為未來更新方向的指引！"
-  },
-  "app.survey.no-thanks": {
-    "message": "不用了，謝謝"
-  },
-  "app.survey.take-survey": {
-    "message": "填寫問卷調查"
-  },
-  "app.survey.title": {
-    "message": "你好啊，Modrinth 使用者！"
-  },
   "app.sync-instances-update.badge": {
     "message": "更新內容"
   },
@@ -3922,9 +3907,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "TNT"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Modrinth 扳手"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "殭屍"

@@ -2843,21 +2843,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "켜기"
   },
-  "app.survey.body": {
-    "message": "Modrinth 앱 이용 경험에 대한 몇 가지 질문에 답변해 주시겠습니까?"
-  },
-  "app.survey.footer": {
-    "message": "이 피드백은 Modrinth 팀에 직접 전달되어 향후 업데이트에 반영됩니다!"
-  },
-  "app.survey.no-thanks": {
-    "message": "괜찮습니다"
-  },
-  "app.survey.take-survey": {
-    "message": "설문 참여하기"
-  },
-  "app.survey.title": {
-    "message": "안녕하세요, Modrinth 사용자님!"
-  },
   "app.update-popup.body.download-complete": {
     "message": "Modrinth App v{version} 다운로드가 완료되었습니다. 새로고침하거나 Modrinth App을 종료하면 자동으로 업데이트됩니다."
   },

@@ -5,7 +5,7 @@ use crate::event::emit::{emit_loading, init_loading};
 use crate::state::LAUNCHER_STATE;
 use crate::state::Settings;
 use crate::util::fetch::IoSemaphore;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::fs;
 
 pub const CACHES_FOLDER_NAME: &str = "caches";
@@ -23,6 +23,33 @@ pub struct DirectoryInfo {
 }
 
 impl DirectoryInfo {
+    fn executable_dir() -> Option<PathBuf> {
+        std::env::current_exe()
+            .ok()
+            .and_then(|path| path.parent().map(Path::to_path_buf))
+    }
+
+    pub fn portable_data_dir() -> Option<PathBuf> {
+        let executable_dir = Self::executable_dir()?;
+        executable_dir
+            .join("portable.txt")
+            .is_file()
+            .then(|| executable_dir.join("MigurinthData"))
+    }
+
+    pub fn is_portable_mode() -> bool {
+        Self::portable_data_dir().is_some()
+    }
+
+    pub fn setup_portable_env() {
+        if let Some(portable_dir) = Self::portable_data_dir() {
+            // SAFETY: called at process startup before worker threads are created.
+            unsafe {
+                std::env::set_var("THESEUS_CONFIG_DIR", portable_dir);
+            }
+        }
+    }
+
     pub fn global_handle_if_ready() -> Option<&'static Self> {
         LAUNCHER_STATE.get().map(|x| &x.directories)
     }

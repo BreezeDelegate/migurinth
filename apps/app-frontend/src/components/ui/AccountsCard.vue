@@ -9,6 +9,21 @@
 			<SpinnerIcon v-else class="animate-spin" />
 			{{ formatMessage(messages.signInToMinecraft) }}
 		</Button>
+		<Button :disabled="loginDisabled" @click="showOfflineForm = !showOfflineForm">
+			{{ formatMessage(messages.addOfflineAccount) }}
+		</Button>
+		<div v-if="showOfflineForm" class="flex gap-2">
+			<input
+				v-model.trim="offlineUsername"
+				class="flex-grow rounded-lg bg-bg-raised border border-solid border-surface-5 px-3 py-2 text-primary"
+				:placeholder="formatMessage(messages.offlineUsernamePlaceholder)"
+				maxlength="16"
+				@keyup.enter="createOfflineAccount"
+			/>
+			<Button :disabled="loginDisabled || !offlineUsername" @click="createOfflineAccount">
+				{{ formatMessage(messages.add) }}
+			</Button>
+		</div>
 	</div>
 	<Accordion
 		v-else
@@ -80,6 +95,25 @@
 					<PlusIcon />
 					{{ formatMessage(messages.addAccount) }}
 				</Button>
+				<Button
+					class="w-full !bg-button-bg !text-primary ![box-shadow:var(--shadow-button)]"
+					:disabled="loginDisabled"
+					@click="showOfflineForm = !showOfflineForm"
+				>
+					{{ formatMessage(messages.addOfflineAccount) }}
+				</Button>
+				<div v-if="showOfflineForm" class="flex gap-2">
+					<input
+						v-model.trim="offlineUsername"
+						class="min-w-0 flex-grow rounded-lg bg-bg-raised border border-solid border-surface-5 px-3 py-2 text-primary"
+						:placeholder="formatMessage(messages.offlineUsernamePlaceholder)"
+						maxlength="16"
+						@keyup.enter="createOfflineAccount"
+					/>
+					<Button :disabled="loginDisabled || !offlineUsername" @click="createOfflineAccount">
+						{{ formatMessage(messages.add) }}
+					</Button>
+				</div>
 			</div>
 		</div>
 	</Accordion>
@@ -112,6 +146,7 @@ import { trackEvent } from '@/helpers/analytics'
 import {
 	get_default_user,
 	login as login_flow,
+	login_offline,
 	remove_user,
 	set_default_user,
 	users,
@@ -132,10 +167,14 @@ type MinecraftCredential = {
 		id: string
 		name: string
 	}
+	access_token?: string
+	refresh_token?: string
 }
 
 const accounts: Ref<MinecraftCredential[]> = ref([])
 const loginDisabled = ref(false)
+const showOfflineForm = ref(false)
+const offlineUsername = ref('')
 const defaultUser = ref<string | undefined>()
 const equippedSkin = ref<Skin | null>(null)
 const equippedHeadUrl = ref<string>()
@@ -201,7 +240,17 @@ const selectedAccount = computed(() =>
 	accounts.value.find((account) => account.profile.id === defaultUser.value),
 )
 
+function isOfflineAccount(account?: MinecraftCredential) {
+	return Boolean(
+		account?.access_token?.startsWith('offline_token_') &&
+		account?.refresh_token?.startsWith('offline_refresh_'),
+	)
+}
+
 const avatarUrl = computed(() => {
+	if (isOfflineAccount(selectedAccount.value)) {
+		return 'https://launcher-files.modrinth.com/assets/steve_head.png'
+	}
 	if (equippedSkin.value?.texture_key) {
 		const cachedUrl = equippedHeadUrl.value
 		if (cachedUrl) {
@@ -216,6 +265,9 @@ const avatarUrl = computed(() => {
 })
 
 function getAccountAvatarUrl(account: MinecraftCredential) {
+	if (isOfflineAccount(account)) {
+		return 'https://launcher-files.modrinth.com/assets/steve_head.png'
+	}
 	if (
 		account.profile.id === selectedAccount.value?.profile?.id &&
 		equippedSkin.value?.texture_key
@@ -245,6 +297,21 @@ async function login() {
 
 	trackEvent('AccountLogIn')
 	loginDisabled.value = false
+}
+
+async function createOfflineAccount() {
+	if (!offlineUsername.value) return
+	loginDisabled.value = true
+	try {
+		const loggedIn = await login_offline(offlineUsername.value)
+		await setAccount(loggedIn)
+		offlineUsername.value = ''
+		showOfflineForm.value = false
+	} catch (error) {
+		handleError(error)
+	} finally {
+		loginDisabled.value = false
+	}
 }
 
 async function logout(id: string) {
@@ -288,6 +355,18 @@ const messages = defineMessages({
 	signInToMinecraft: {
 		id: 'minecraft-account.sign-in',
 		defaultMessage: 'Sign in to Minecraft',
+	},
+	addOfflineAccount: {
+		id: 'minecraft-account.add-offline',
+		defaultMessage: 'Add offline account',
+	},
+	offlineUsernamePlaceholder: {
+		id: 'minecraft-account.offline-username-placeholder',
+		defaultMessage: 'Offline username',
+	},
+	add: {
+		id: 'minecraft-account.add-offline-submit',
+		defaultMessage: 'Add',
 	},
 })
 </script>

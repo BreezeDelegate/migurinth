@@ -2093,21 +2093,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "オンに切り替え"
   },
-  "app.survey.body": {
-    "message": "Modrinth App の使用感についての簡単なアンケートにご協力いただけますか？"
-  },
-  "app.survey.footer": {
-    "message": "このフィードバックはModrinthチームに直接届けられ、今後のアップデートの改善に役立てられます！"
-  },
-  "app.survey.no-thanks": {
-    "message": "結構です"
-  },
-  "app.survey.take-survey": {
-    "message": "アンケートに回答"
-  },
-  "app.survey.title": {
-    "message": "Modrinthユーザーのみなさん、こんにちは！"
-  },
   "app.update-popup.body.download-complete": {
     "message": "Modrinth App v{version} のダウンロードが完了しました。今すぐ更新するには再読み込みするか、Modrinth Appを閉じる際に自動更新されます。"
   },
@@ -2593,9 +2578,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "TNT"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Modrinthのレンチ"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "ゾンビ"

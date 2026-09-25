@@ -2459,18 +2459,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "Växla på"
   },
-  "app.survey.body": {
-    "message": "Skulle du kunna svara på några frågor angående din upplevelse med Modrinth App?"
-  },
-  "app.survey.footer": {
-    "message": "Den här återkopplingen kommer gå direkt till Modrinth-teamet och hjälper till att vägleda framtida uppdateringar!"
-  },
-  "app.survey.no-thanks": {
-    "message": "Nej tack"
-  },
-  "app.survey.title": {
-    "message": "Hej där Modrinth-användare!"
-  },
   "app.sync-instances-update.badge": {
     "message": "Nytt den här uppdateringen"
   },
@@ -3001,9 +2989,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "Dynamit"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Modrinth skiftnyckel"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "Zombie"

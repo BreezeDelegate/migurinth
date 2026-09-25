@@ -47,6 +47,51 @@ pub async fn finish_login(
     Ok(credentials)
 }
 
+pub fn validate_offline_username(username: &str) -> crate::Result<()> {
+    if !(3..=16).contains(&username.len()) {
+        return Err(crate::ErrorKind::InputError(
+            "Username must be between 3 and 16 characters".to_string(),
+        )
+        .into());
+    }
+
+    if !username
+        .chars()
+        .all(|character| character.is_ascii_alphanumeric() || character == '_')
+    {
+        return Err(crate::ErrorKind::InputError(
+            "Username can only contain ASCII letters, numbers, and underscores"
+                .to_string(),
+        )
+        .into());
+    }
+
+    Ok(())
+}
+
+#[tracing::instrument]
+pub async fn create_offline_credentials(
+    username: String,
+) -> crate::Result<Credentials> {
+    validate_offline_username(&username)?;
+    let state = State::get().await?;
+    let user_id = uuid::Uuid::new_v4();
+    let credentials = Credentials {
+        offline_profile: crate::state::MinecraftProfile {
+            id: user_id,
+            name: username,
+            ..crate::state::MinecraftProfile::default()
+        },
+        access_token: format!("offline_token_{user_id}"),
+        refresh_token: format!("offline_refresh_{user_id}"),
+        expires: chrono::Utc::now() + chrono::Duration::days(36_500),
+        active: true,
+    };
+
+    credentials.upsert(&state.pool).await?;
+    Ok(credentials)
+}
+
 #[tracing::instrument]
 pub async fn get_default_user() -> crate::Result<Option<uuid::Uuid>> {
     let state = State::get().await?;
@@ -98,4 +143,18 @@ pub async fn users() -> crate::Result<Vec<Credentials>> {
     let state = State::get().await?;
     let users = Credentials::get_all(&state.pool).await?;
     Ok(users.into_iter().map(|x| x.1).collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_offline_username;
+
+    #[test]
+    fn offline_username_validation_matches_minecraft_rules() {
+        assert!(validate_offline_username("Player_123").is_ok());
+        assert!(validate_offline_username("ab").is_err());
+        assert!(validate_offline_username("abcdefghijklmnopq").is_err());
+        assert!(validate_offline_username("bad-name").is_err());
+        assert!(validate_offline_username("sp ace").is_err());
+    }
 }

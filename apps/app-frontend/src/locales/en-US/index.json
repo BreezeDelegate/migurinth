@@ -3296,21 +3296,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "Toggle on"
   },
-  "app.survey.body": {
-    "message": "Would you mind answering a few questions about your experience with Modrinth App?"
-  },
-  "app.survey.footer": {
-    "message": "This feedback will go directly to the Modrinth team and help guide future updates!"
-  },
-  "app.survey.no-thanks": {
-    "message": "No thanks"
-  },
-  "app.survey.take-survey": {
-    "message": "Take survey"
-  },
-  "app.survey.title": {
-    "message": "Hey there Modrinth user!"
-  },
   "app.sync-instances-update.badge": {
     "message": "New this update"
   },
@@ -3492,7 +3477,7 @@
     "message": "Press <shortcut>N</shortcut> to quick create an instance"
   },
   "app.welcome-screen.title": {
-    "message": "Welcome to Modrinth"
+    "message": "Welcome to Migurinth"
   },
   "app.world.server-modal.placeholder-address": {
     "message": "example.modrinth.gg"
@@ -3928,9 +3913,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "TNT"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Modrinth Wrench"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "Zombie"
@@ -4451,11 +4433,20 @@
   "minecraft-account.add-account": {
     "message": "Add account"
   },
+  "minecraft-account.add-offline": {
+    "message": "Add offline account"
+  },
+  "minecraft-account.add-offline-submit": {
+    "message": "Add"
+  },
   "minecraft-account.label": {
     "message": "Minecraft account"
   },
   "minecraft-account.not-signed-in": {
     "message": "Not signed in"
+  },
+  "minecraft-account.offline-username-placeholder": {
+    "message": "Offline username"
   },
   "minecraft-account.remove-account": {
     "message": "Remove account"

@@ -9,6 +9,7 @@ use std::env;
 use std::sync::atomic::Ordering;
 use tauri::{Listener, Manager};
 use tauri_plugin_fs::FsExt;
+use theseus::DirectoryInfo;
 use theseus::prelude::*;
 
 mod api;
@@ -115,6 +116,8 @@ async fn set_restart_after_pending_update(
 // if Tauri app is called with arguments, then those arguments will be treated as commands
 // ie: deep links or filepaths for .mrpacks
 fn main() {
+    DirectoryInfo::setup_portable_env();
+
     #[cfg(feature = "export-app-events")]
     theseus::export_app_event_bindings(
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -141,7 +144,7 @@ fn main() {
 
     let _log_guard = theseus::start_logger(&tauri_context.config().identifier);
 
-    tracing::info!("Initialized tracing subscriber. Loading Modrinth App!");
+    tracing::info!("Initialized tracing subscriber. Loading Migurinth!");
 
     let mut builder = tauri::Builder::default();
 
@@ -186,8 +189,10 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(
+        .plugin(tauri_plugin_opener::init());
+
+    if !DirectoryInfo::is_portable_mode() {
+        builder = builder.plugin(
             tauri_plugin_window_state::Builder::default()
                 .with_filename("app-window-state.json")
                 .with_denylist(&["signin"])
@@ -198,55 +203,54 @@ fn main() {
                         | tauri_plugin_window_state::StateFlags::MAXIMIZED,
                 )
                 .build(),
-        )
-        .setup(|app| {
-            #[cfg(target_os = "macos")]
-            {
-                let payload = macos::deep_link::get_or_init_payload(app);
+        );
+    }
 
-                let mtx_copy = payload.payload;
-                app.listen("deep-link://new-url", move |url| {
-                    let mtx_copy_copy = mtx_copy.clone();
-                    let request = url.payload().to_owned();
+    builder = builder.setup(|app| {
+        #[cfg(target_os = "macos")]
+        {
+            let payload = macos::deep_link::get_or_init_payload(app);
 
-                    let actual_request =
-                        serde_json::from_str::<Vec<String>>(&request)
-                            .ok()
-                            .map(|mut x| x.remove(0))
-                            .unwrap_or(request);
+            let mtx_copy = payload.payload;
+            app.listen("deep-link://new-url", move |url| {
+                let mtx_copy_copy = mtx_copy.clone();
+                let request = url.payload().to_owned();
 
-                    tauri::async_runtime::spawn(async move {
-                        tracing::info!("Handling macOS deep link");
+                let actual_request =
+                    serde_json::from_str::<Vec<String>>(&request)
+                        .ok()
+                        .map(|mut x| x.remove(0))
+                        .unwrap_or(request);
 
-                        let mut payload = mtx_copy_copy.lock().await;
-                        if payload.is_none() {
-                            *payload = Some(actual_request.clone());
-                        }
+                tauri::async_runtime::spawn(async move {
+                    tracing::info!("Handling macOS deep link");
 
-                        let _ =
-                            api::utils::handle_command(actual_request).await;
-                    });
+                    let mut payload = mtx_copy_copy.lock().await;
+                    if payload.is_none() {
+                        *payload = Some(actual_request.clone());
+                    }
+
+                    let _ = api::utils::handle_command(actual_request).await;
                 });
-            };
-
-            #[cfg(not(target_os = "macos"))]
-            app.listen("deep-link://new-url", |url| {
-                let payload = url.payload().to_owned();
-                tracing::info!("Handling deep link");
-                tauri::async_runtime::spawn(api::utils::handle_command(
-                    payload,
-                ));
             });
+        };
 
-            #[cfg(not(target_os = "linux"))]
-            if let Some(window) = app.get_window("main")
-                && let Err(e) = window.set_shadow(true)
-            {
-                tracing::warn!("Failed to set window shadow: {e}");
-            }
-
-            Ok(())
+        #[cfg(not(target_os = "macos"))]
+        app.listen("deep-link://new-url", |url| {
+            let payload = url.payload().to_owned();
+            tracing::info!("Handling deep link");
+            tauri::async_runtime::spawn(api::utils::handle_command(payload));
         });
+
+        #[cfg(not(target_os = "linux"))]
+        if let Some(window) = app.get_window("main")
+            && let Err(e) = window.set_shadow(true)
+        {
+            tracing::warn!("Failed to set window shadow: {e}");
+        }
+
+        Ok(())
+    });
 
     builder = builder
         .plugin(api::auth::init())
@@ -268,7 +272,6 @@ fn main() {
         .plugin(api::utils::init())
         .plugin(api::cache::init())
         .plugin(api::files::init())
-        .plugin(api::ads::init())
         .plugin(api::friends::init())
         .plugin(api::worlds::init())
         .manage(PendingUpdateData::default())

@@ -3284,21 +3284,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "Attiva"
   },
-  "app.survey.body": {
-    "message": "Ti dispiacerebbe rispondere ad alcune domande sulla tua esperienza con Modrinth App?"
-  },
-  "app.survey.footer": {
-    "message": "Le tue risposte andranno direttamente al team di Modrinth e aiuteranno a guidare gli aggiornamenti futuri!"
-  },
-  "app.survey.no-thanks": {
-    "message": "No, grazie"
-  },
-  "app.survey.take-survey": {
-    "message": "Vai al sondaggio"
-  },
-  "app.survey.title": {
-    "message": "Ciao, utente di Modrinth!"
-  },
   "app.sync-instances-update.badge": {
     "message": "Novità"
   },
@@ -3916,9 +3901,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "TNT"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Chiave di Modrinth"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "Zombi"

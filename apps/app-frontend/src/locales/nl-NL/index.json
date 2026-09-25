@@ -2936,21 +2936,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "Inschakelen"
   },
-  "app.survey.body": {
-    "message": "Zou je een paar vragen willen beantwoorden over je ervaringen met de Modrinth-app?"
-  },
-  "app.survey.footer": {
-    "message": "Deze feedback wordt rechtstreeks doorgestuurd naar het Modrinth-team en zal als leidraad dienen voor toekomstige updates!"
-  },
-  "app.survey.no-thanks": {
-    "message": "Nee, bedankt"
-  },
-  "app.survey.take-survey": {
-    "message": "Aan enquête meedoen"
-  },
-  "app.survey.title": {
-    "message": "Hoi, Modrinth-gebruiker!"
-  },
   "app.sync-instances-update.badge": {
     "message": "Nieuw deze update"
   },
@@ -3508,9 +3493,6 @@
   },
   "instance.icon-editor.symbol.tnt": {
     "message": "Dynamiet"
-  },
-  "instance.icon-editor.symbol.wrenth-rinth": {
-    "message": "Modrinth moersleutel"
   },
   "instance.icon-editor.symbol.zombie": {
     "message": "Zombie"

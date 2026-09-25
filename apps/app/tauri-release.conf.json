@@ -1,40 +1,32 @@
 {
 	"bundle": {
 		"createUpdaterArtifacts": "v1Compatible",
-		"windows": {
-			"signCommand": {
-				"cmd": "jsign",
-				"args": [
-					"sign",
-					"--verbose",
-					"--storetype",
-					"DIGICERTONE",
-					"--keystore",
-					"https://clientauth.one.digicert.com",
-					"--storepass",
-					"env:DIGICERT_ONE_SIGNER_CREDENTIALS",
-					"--tsaurl",
-					"https://timestamp.sectigo.com,http://timestamp.digicert.com",
-					"%1"
-				]
-			}
-		}
+		"windows": {}
 	},
 	"build": {
-		"features": ["updater"]
+		"features": [
+			"updater"
+		]
 	},
 	"app": {
 		"security": {
-			"capabilities": ["ads", "core", "plugins", "updater"]
+			"capabilities": [
+				"core",
+				"plugins",
+				"updater"
+			]
 		}
 	},
 	"plugins": {
 		"updater": {
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIwMzM5QkE0M0FCOERBMzkKUldRNTJyZzZwSnN6SUdPRGdZREtUUGxMblZqeG9OVHYxRUlRTzJBc2U3MUNJaDMvZDQ1UytZZmYK",
-			"endpoints": ["https://launcher-files.modrinth.com/updates.json"],
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhCODBERjQ4MjlFNDBCMkMKUldRc0MrUXBTTitBaS8xRkZ2SHptUXBGb1o4dlhDZ2hwUXFaQW5NeTVkOVJKSkJSK2MxOVZQRk8K",
+			"endpoints": [
+				"https://github.com/BreezeDelegate/migurinth/releases/latest/download/updates.json"
+			],
 			"windows": {
 				"installMode": "quiet"
-			}
+			},
+			"allowPrerelease": true
 		}
 	}
 }

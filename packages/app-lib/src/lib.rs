@@ -27,15 +27,15 @@ pub use event::{
     emit::init_loading,
 };
 pub use logger::start_logger;
-pub use state::State;
+pub use state::{DirectoryInfo, State};
 pub use util::fetch::DownloadReason;
 
 pub fn launcher_user_agent() -> String {
     const LAUNCHER_BASE_USER_AGENT: &str =
-        concat!("modrinth/theseus/", env!("CARGO_PKG_VERSION"),);
+        concat!("migurinth/theseus/", env!("CARGO_PKG_VERSION"),);
 
     format!(
-        "{} ({}; support@modrinth.com)",
+        "{} ({}; https://github.com/BreezeDelegate/migurinth)",
         LAUNCHER_BASE_USER_AGENT,
         std::env::consts::OS
     )

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-label="Abstract background">
+  <rect width="960" height="320" fill="#171717"/>
+  <circle cx="170" cy="70" r="150" fill="#4ade80" opacity=".12"/>
+  <circle cx="820" cy="260" r="210" fill="#4ade80" opacity=".08"/>
+  <path d="M0 240C170 170 280 310 470 225s315-40 490-135v230H0z" fill="#ffffff" opacity=".035"/>
+</svg>

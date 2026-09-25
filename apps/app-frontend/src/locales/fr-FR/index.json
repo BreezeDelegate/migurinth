@@ -2732,21 +2732,6 @@
   "app.skins.toggle-ears-features-on": {
     "message": "Activer"
   },
-  "app.survey.body": {
-    "message": "Cela vous dérangerait-il de répondre à quelques questions sur votre expérience avec l'application Modrinth ?"
-  },
-  "app.survey.footer": {
-    "message": "Ces retours seront transmis directement à l'équipe de Modrinth et aideront à orienter les futures mises à jour !"
-  },
-  "app.survey.no-thanks": {
-    "message": "Non merci"
-  },
-  "app.survey.take-survey": {
-    "message": "Répondre au sondage"
-  },
-  "app.survey.title": {
-    "message": "Salut, utilisateur de Modrinth !"
-  },
   "app.sync-instances-update.retry": {
     "message": "Réessayer"
   },

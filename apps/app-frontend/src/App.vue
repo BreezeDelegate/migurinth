@@ -98,7 +98,6 @@ import PromotionWrapper from '@/components/ui/PromotionWrapper.vue'
 import QuickInstanceSwitcher from '@/components/ui/QuickInstanceSwitcher.vue'
 import SharedInstanceInviteHandler from '@/components/ui/shared-instances/shared-instance-invite-handler/index.vue'
 import SplashScreen from '@/components/ui/SplashScreen.vue'
-import SurveyPopup from '@/components/ui/SurveyPopup.vue'
 import SyncInstancesUpdateModal from '@/components/ui/sync-instances-update-modal/index.vue'
 import {
 	markSyncInstancesUpdateNotificationShown,
@@ -2450,7 +2449,6 @@ provideAppUpdateDownloadProgress(appUpdateDownload)
 		}"
 	>
 		<div class="app-viewport flex-grow router-view">
-			<SurveyPopup />
 			<div
 				class="loading-indicator-container h-8 fixed z-50 pointer-events-none"
 				:style="{
