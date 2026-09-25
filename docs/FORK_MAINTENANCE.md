@@ -50,24 +50,33 @@ Keep these behaviors when syncing from Modrinth:
 
 ## Windows release from the canonical Linux VPS
 
-GitHub-hosted Windows compute is not required for the unsigned Windows build. The canonical VPS
-can cross-compile the launcher with `x86_64-pc-windows-gnu`, then package it with the maintained
-`apps/app/nsis/migurinth-cross-build.nsi` template. The target-specific stack linker flags live in
-`.cargo/config.toml`: MSVC keeps `/STACK:16777220`, while MinGW uses
-`-Wl,--stack,16777220`.
+GitHub-hosted Windows compute is not required. The canonical Linux VPS builds the official Tauri
+Windows bundle with MSVC compatibility through `cargo-xwin`; Tauri then creates its normal NSIS
+installer and v1-compatible updater archive (`.nsis.zip`) using the existing project configuration
+and hooks.
 
-The Linux-hosted Tauri CLI cannot emit an NSIS bundle directly, so the Windows release sequence is:
+Prerequisites on the VPS are the Rust `x86_64-pc-windows-msvc` target, `cargo-xwin`, LLVM/Clang,
+and NSIS. Debian exposes `clang-cl` as a versioned binary, so the canonical environment provides a
+user-local `clang-cl` alias without modifying the system toolchain.
 
-1. cross-compile `theseus_gui` for `x86_64-pc-windows-gnu` with the updater/custom-protocol features;
-2. package `theseus_gui.exe` plus `WebView2Loader.dll` with the committed NSIS template using
-   `makensis -WX`;
-3. verify the payload hashes after extracting the installer;
-4. run a silent install/uninstall smoke in a disposable Wine prefix;
-5. sign the final setup with the Tauri updater private key stored outside Git and verify the
-   signature against the committed updater public key.
+Release sequence:
 
-This produces an updater-authenticated installer but does not add Microsoft Authenticode signing.
-Do not reintroduce Modrinth's DigiCert signing secrets or external CI credentials into this fork.
+1. copy `packages/app-lib/.env.prod` to `packages/app-lib/.env` for the build only;
+2. run Tauri with `cargo-xwin` as the runner, target `x86_64-pc-windows-msvc`, and an override that
+   sets `bundle.targets` to `['nsis']` while retaining `tauri-release.conf.json`;
+3. require the official Tauri outputs: `Migurinth.exe`, the NSIS setup, the `.nsis.zip` updater
+   artifact, and both updater signatures;
+4. verify both signatures with Minisign against the updater public key committed in
+   `tauri-release.conf.json`;
+5. smoke the official setup in a disposable Wine prefix with WebView2 pre-registered. Wine cannot
+   run Microsoft's native WebView2 bootstrapper, so a normal first-install WebView2 bootstrap is not
+   a meaningful Wine compatibility test; with that prerequisite stubbed, installation, registry
+   associations, payload hash, and uninstallation must all pass.
+
+The updater signatures authenticate the release to Migurinth. They are not Microsoft Authenticode
+signatures, so Windows may still present normal publisher/SmartScreen warnings for an unsigned
+independent build. Do not reintroduce Modrinth's DigiCert credentials or other upstream private
+signing secrets into this fork.
 
 ## Public contributions
 
