@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "צפה בלוגים"
   },
-  "app.ads-consent.accept": {
-    "message": "קבל הכל"
-  },
-  "app.ads-consent.body": {
-    "message": "פרסומות מאפשרות את הפעילות של Modrinth ואת הון התשלום ליוצרים. ייתכן כי השותפים שלנו ישמרו או יגשו לעוגיות באפליקציה על מנת להגיש פרסומות אישיות ולמדוד ביצועים."
-  },
-  "app.ads-consent.manage": {
-    "message": "ניהול העדפות"
-  },
-  "app.ads-consent.reject": {
-    "message": "דחה הכל"
-  },
-  "app.ads-consent.title": {
-    "message": "הפרטיות שלך ואיך פרסומות תומכות בModrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "הצכ התקנות בפריסת שורות קומפקטית."
   },
@@ -1294,9 +1279,6 @@
   },
   "app.nav.switch-account": {
     "message": "החלף חשבון"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "שדרג לModrinth+"
   },
   "app.nav.view-profile": {
     "message": "ראה פרופיל"

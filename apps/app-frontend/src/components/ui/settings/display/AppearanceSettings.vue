@@ -70,11 +70,7 @@ const { saved, current, changes, saving, hasChanges, reset, save } = useSavable(
 	},
 )
 
-const themeOptions = computed(() =>
-	theme.options.filter(
-		(option) => option !== 'retro' || appSettings.devMode || current.value.theme === 'retro',
-	),
-)
+const themeOptions = computed(() => theme.options)
 
 const preferredDarkTheme = computed(() =>
 	isDarkTheme(current.value.theme) ? current.value.theme : theme.preferredDark,

@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "查看日志"
   },
-  "app.ads-consent.accept": {
-    "message": "全部接受"
-  },
-  "app.ads-consent.body": {
-    "message": "​广告维持着 Modrinth 的持续运营，并为创作者收益提供资金支持。我们的合作伙伴可能会在应用中存储或读取 Cookie，以提供个性化广告并评估广告效果。"
-  },
-  "app.ads-consent.manage": {
-    "message": "管理偏好设置"
-  },
-  "app.ads-consent.reject": {
-    "message": "全部拒绝"
-  },
-  "app.ads-consent.title": {
-    "message": "您的隐私以及广告如何支持 Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "用紧凑行式布局显示库实例。"
   },
@@ -1378,9 +1363,6 @@
   },
   "app.nav.switch-account": {
     "message": "切换账户"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "升级至Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "查看个人主页"
@@ -2734,9 +2716,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "广告使 Modrinth 得以运营，并为创作者报酬提供资金支持。我们的合作伙伴可能会在应用中存储或访问 Cookie，以便实现广告个性化和效果衡量。您可以在下方选择退出或管理您的偏好设置。"
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "在 Discord 上将 Modrinth App 显示为您当前的活动。这不会影响模组为游戏实例添加的 Rich Presence。需要重启应用生效。"

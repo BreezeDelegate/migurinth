@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Ver registros"
   },
-  "app.ads-consent.accept": {
-    "message": "Aceptar todo"
-  },
-  "app.ads-consent.body": {
-    "message": "Los anuncios hacen que Modrinth sea posible y financian los pagos a los creadores. Nuestros socios pueden almacenar o acceder a cookies en la aplicación para personalizar los anuncios y medir el rendimiento."
-  },
-  "app.ads-consent.manage": {
-    "message": "Gestionar preferencias"
-  },
-  "app.ads-consent.reject": {
-    "message": "Rechazar todo"
-  },
-  "app.ads-consent.title": {
-    "message": "Tu privacidad y cómo los anuncios apoyan a Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Muestra las instancias de la biblioteca en un diseño compacto de filas."
   },
@@ -1375,9 +1360,6 @@
   },
   "app.nav.switch-account": {
     "message": "Cambiar cuenta"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Actualizar a Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "Ver perfil"
@@ -2731,9 +2713,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Los anuncios hacen Modrinth posible y financian los pagos a los creadores. Nuestros socios pueden almacenar o acceder a cookies en la aplicación para personalizar los anuncios y medir el rendimiento. Puedes desactivar esta opción o modificar tus preferencias a continuación."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Mostrar Modrinth App como tu actividad actual en Discord.\nEsto no afecta tu Presencia Enriquecida añadida a instancias por mods. Requiere reiniciar la aplicación."

@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "Переглянути журнали"
   },
-  "app.ads-consent.accept": {
-    "message": "Прийняти всі"
-  },
-  "app.ads-consent.body": {
-    "message": "Реклама підтримує існування Modrinth і фінансує виплати творцям. Наші партнери можуть зберігати й отримувати доступ до cookie в застосунку, щоб персоналізувати рекламу та збирати метрики."
-  },
-  "app.ads-consent.manage": {
-    "message": "Налаштувати"
-  },
-  "app.ads-consent.reject": {
-    "message": "Відхилити всі"
-  },
-  "app.ads-consent.title": {
-    "message": "Ваша приватність і як реклама підтримує Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Показувати примірники у вигляді компактних рядків."
   },
@@ -1369,9 +1354,6 @@
   },
   "app.nav.switch-account": {
     "message": "Змінити обліковий запис"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Покращитись до Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "Переглянути профіль"
@@ -2725,9 +2707,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Реклама підтримує існування Modrinth і фінансує виплати творцям. Наші партнери можуть зберігати й отримувати доступ до cookie в застосунку, щоб персоналізувати рекламу та збирати метрики. Ви можете відмовитися від них або керувати налаштуваннями нижче."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Показувати застосунок Modrinth як вашу поточну активність у Discord. Це не впливає на активність, додану модами. Потребує перезапуску застосунку."

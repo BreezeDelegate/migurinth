@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "로그 보기"
   },
-  "app.ads-consent.accept": {
-    "message": "모두 수락"
-  },
-  "app.ads-consent.body": {
-    "message": "광고는 Modrinth가 운영될 수 있도록 하며, 크리에이터에게 지급되는 보상을 지원합니다. 우리의 파트너는 앱에서 광고를 개인 맞춤으로 제공하고 성과를 측정하기 위해 쿠키를 저장하거나 접근할 수 있습니다."
-  },
-  "app.ads-consent.manage": {
-    "message": "환경 설정 관리"
-  },
-  "app.ads-consent.reject": {
-    "message": "모두 거절"
-  },
-  "app.ads-consent.title": {
-    "message": "개인정보와 광고가 Modrinth를 지원하는 방식"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "라이브러리 인스턴스를 간결한 행 형태의 레이아웃으로 표시합니다."
   },
@@ -1376,9 +1361,6 @@
   "app.nav.switch-account": {
     "message": "계정 변경"
   },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Modrinth+ 로 업그레이드"
-  },
   "app.nav.view-profile": {
     "message": "프로필 보기"
   },
@@ -2581,9 +2563,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "광고는 Modrinth가 운영될 수 있도록 하며, 크리에이터에게 지급되는 보상을 지원합니다. 우리의 파트너는 앱에서 광고를 개인 맞춤으로 제공하고 성과를 측정하기 위해 쿠키를 저장하거나 접근할 수 있습니다. 아래에서 거부하거나 환경 설정을 관리할 수 있습니다."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Discord의 현재 활동 상태에 Modrinth App을 표시합니다. 모드가 인스턴스에 추가한 Rich Presence에는 영향을 미치지 않습니다. 앱 재시작이 필요합니다."

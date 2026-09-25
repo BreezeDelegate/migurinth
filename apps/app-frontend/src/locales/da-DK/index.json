@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Vis logs"
   },
-  "app.ads-consent.accept": {
-    "message": "Accepter alle"
-  },
-  "app.ads-consent.body": {
-    "message": "Reklamer gør Modrinth muligt og finansiere skaber udbetalinger. Vores partnere må gemme og tilgå cookies i appen for at personliggøre reklamer og måle effektivitet."
-  },
-  "app.ads-consent.manage": {
-    "message": "Administrer præferencer"
-  },
-  "app.ads-consent.reject": {
-    "message": "Afvis alle"
-  },
-  "app.ads-consent.title": {
-    "message": "Dit privatliv og hvordan reklamer hjælper Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Vis biblioteksinstanser i et kompakt række-layout."
   },

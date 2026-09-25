@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "查看紀錄"
   },
-  "app.ads-consent.accept": {
-    "message": "全部接受"
-  },
-  "app.ads-consent.body": {
-    "message": "廣告使 Modrinth 得以營運，並為創作者提供收益。我們的合作夥伴可能會在應用程式中儲存或存取 Cookie，以實現個人化廣告並衡量廣告成效。"
-  },
-  "app.ads-consent.manage": {
-    "message": "管理偏好設定"
-  },
-  "app.ads-consent.reject": {
-    "message": "全部拒絕"
-  },
-  "app.ads-consent.title": {
-    "message": "關於你的隱私，以及廣告如何幫助 Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "以密集的橫列版面顯示遊戲庫實例。"
   },
@@ -1378,9 +1363,6 @@
   },
   "app.nav.switch-account": {
     "message": "切換帳號"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "升級至 Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "查看個人檔案"
@@ -2734,9 +2716,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "廣告使 Modrinth 得以營運，並為創作者提供收益。我們的合作夥伴可能會在應用程式中儲存或存取 Cookie，以實現個人化廣告並衡量廣告成效。你可以在下方選擇退出或管理偏好設定。"
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "在 Discord 上將 Modrinth App 顯示為目前活動。這不會影響模組為實例新增的豐富狀態。需要重新啟動應用程式。"

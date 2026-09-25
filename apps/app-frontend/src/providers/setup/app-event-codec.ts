@@ -238,8 +238,6 @@ export function decodeAppEvent(payload: ArrayBuffer): AppEvent {
 				return { type: event.tag, payload: JSON.parse(String(event.value)) as unknown }
 			case 'log':
 				return { type: event.tag, payload: normalizeLogPayload(event.value) }
-			case 'ads_consent_required':
-				return { type: event.tag, payload: event.value }
 			default:
 				throw new TypeError(`Unknown Postcard app event: ${event.tag}`)
 		}

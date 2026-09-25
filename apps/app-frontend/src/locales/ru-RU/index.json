@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "Посмотреть журнал"
   },
-  "app.ads-consent.accept": {
-    "message": "Принять всё"
-  },
-  "app.ads-consent.body": {
-    "message": "Реклама обеспечивает работу Modrinth и выплаты авторам. Для персонализации и анализа рекламы наши партнёры могут использовать куки."
-  },
-  "app.ads-consent.manage": {
-    "message": "Настроить"
-  },
-  "app.ads-consent.reject": {
-    "message": "Отклонить всё"
-  },
-  "app.ads-consent.title": {
-    "message": "Конфиденциальность и реклама на Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Отображать сборки в библиотеке компактным списком."
   },
@@ -1360,9 +1345,6 @@
   },
   "app.nav.switch-account": {
     "message": "Сменить аккаунт"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Перейти на Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "Посмотреть профиль"
@@ -2713,9 +2695,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Реклама обеспечивает работу Modrinth и выплаты авторам. Для персонализации и анализа рекламы наши партнёры могут использовать куки. Отказаться и настроить куки можно ниже."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Показывать Modrinth App в текущей активности Discord. Не влияет на Rich Presence модов. Требуется перезапуск."

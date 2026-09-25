@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Zobrazit logy"
   },
-  "app.ads-consent.accept": {
-    "message": "Přijmout vše"
-  },
-  "app.ads-consent.body": {
-    "message": "Reklamy umožňují Modrint a vyplatí finanční prostředky partnerům. Naši partneři mohou ukládat nebo přistupovat k cookies v aplikaci, aby přizpůsobili reklamy a změřili výkon."
-  },
-  "app.ads-consent.manage": {
-    "message": "Spravovat preference"
-  },
-  "app.ads-consent.reject": {
-    "message": "Odmítnout vše"
-  },
-  "app.ads-consent.title": {
-    "message": "Vaše soukromí a způsob, jakým reklamy podporují Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Zobrazit instanční knihovny v kompaktních řádcích."
   },
@@ -1204,9 +1189,6 @@
   },
   "app.nav.switch-account": {
     "message": "Změnit účet"
-  },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Upgradovat na Modrinth+"
   },
   "app.nav.view-profile": {
     "message": "Zobrazit profil"

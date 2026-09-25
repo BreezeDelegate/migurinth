@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Vezi jurnalele"
   },
-  "app.ads-consent.accept": {
-    "message": "Acceptă tot"
-  },
-  "app.ads-consent.body": {
-    "message": "Anunțurile fac posibil Modrinth și finanțează plățile creatorilor. Partenerii noștri pot stoca sau accesa cookie-uri în aplicație pentru a personaliza reclamele și a măsura performanța."
-  },
-  "app.ads-consent.manage": {
-    "message": "Gestionează preferințele"
-  },
-  "app.ads-consent.reject": {
-    "message": "Refuză tot"
-  },
-  "app.ads-consent.title": {
-    "message": "Confidențialitatea ta și modul în care anunțurile susțin Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Afișează instanțele bibliotecii într-un layout compact."
   },

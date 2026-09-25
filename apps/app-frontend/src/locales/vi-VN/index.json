@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Xem logs"
   },
-  "app.ads-consent.accept": {
-    "message": "Chấp nhận tất cả"
-  },
-  "app.ads-consent.body": {
-    "message": "Quảng cáo giúp Modrinth hoạt động và tài trợ cho việc thanh toán cho người sáng tạo nội dung. Các đối tác của chúng tôi có thể lưu trữ hoặc truy cập cookie trong ứng dụng để cá nhân hóa quảng cáo và đo lường hiệu suất."
-  },
-  "app.ads-consent.manage": {
-    "message": "Quản lý tùy chọn"
-  },
-  "app.ads-consent.reject": {
-    "message": "Từ chối tất cả"
-  },
-  "app.ads-consent.title": {
-    "message": "Quyền riêng tư của bạn và cách quảng cáo hỗ trợ Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Hiển thị thư viện phiên bản theo bố cục hàng nhỏ gọn."
   },

@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "Visa loggar"
   },
-  "app.ads-consent.accept": {
-    "message": "Godkänn alla"
-  },
-  "app.ads-consent.body": {
-    "message": "Annonser gör Modrinth möjligt och finansierar utbetalningar till skapare. Våra partner kan lagra eller komma åt kakor i appen för att rikta annonser och mäta statistik."
-  },
-  "app.ads-consent.manage": {
-    "message": "Hantera inställningar"
-  },
-  "app.ads-consent.reject": {
-    "message": "Avvisa alla"
-  },
-  "app.ads-consent.title": {
-    "message": "Din integritet och hur annonser stödjer Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Visa biblioteksinstanser i en kompakt radlayout."
   },
@@ -1352,9 +1337,6 @@
   "app.nav.switch-account": {
     "message": "Byt konto"
   },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Uppgradera till Modrinth+"
-  },
   "app.nav.view-profile": {
     "message": "Visa profil"
   },
@@ -2116,9 +2098,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Annonser gör Modrinth möjligt och finansierar utbetalningar till skapare. Våra partner kan lagra eller komma åt kakor i appen för att rikta annonser och mäta statistik. Du kan välja bort eller hantera dina inställningar nedan."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Visa Modrinth App som din nuvarande aktivitet på Discord. Detta påverkar inte Rich Presence som lagts till i instanser av moddar. Kräver en app omstart."

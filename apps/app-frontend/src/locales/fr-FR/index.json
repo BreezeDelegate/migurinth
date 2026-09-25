@@ -128,21 +128,6 @@
   "app.action-bar.view-logs": {
     "message": "Voir les journaux"
   },
-  "app.ads-consent.accept": {
-    "message": "Tout accepter"
-  },
-  "app.ads-consent.body": {
-    "message": "Les publicités rendent Modrinth possible et financent la rémunération des créateurs. Nos partenaires peuvent stocker des cookies ou y accéder au sein de l'application afin de personnaliser les publicités et de mesurer les performances."
-  },
-  "app.ads-consent.manage": {
-    "message": "Gérer les préférences"
-  },
-  "app.ads-consent.reject": {
-    "message": "Tout refuser"
-  },
-  "app.ads-consent.title": {
-    "message": "Votre vie privée et comment les publicités soutiennent Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Afficher les instances de la bibliothèque dans une disposition compacte."
   },
@@ -1370,9 +1355,6 @@
   "app.nav.switch-account": {
     "message": "Changer de compte"
   },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Passer à Modrinth+"
-  },
   "app.nav.view-profile": {
     "message": "Voir le profil"
   },
@@ -2404,9 +2386,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Les publicités rendent Modrinth possible et financent les rémunérations des créateurs. Nos partenaires peuvent stocker des cookies ou y accéder au sein de l'application afin de personnaliser les publicités et de mesurer les performances. Vous pouvez refuser ou gérer vos préférences ci-dessous."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Affiche Modrinth App en tant que votre activité actuelle sur Discord. Cela n'affecte pas Rich Presence ajouté à l'instance par les mods. Nécessite un redémarrage de l'application."

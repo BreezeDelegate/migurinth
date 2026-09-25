@@ -26,8 +26,9 @@ refresh. The historical fork had not integrated current Modrinth since early 202
   is client-side by design.
 - The Tauri updater private key is stored outside Git with mode `0600`; only the public key
   and BreezeDelegate release URL are committed.
-- PostHog, Sentry, ads, survey/Tally bootstrap, and their unnecessary CSP permissions are
-  removed/no-op in Migurinth.
+- PostHog, Sentry, survey/Tally bootstrap, and their unnecessary CSP permissions are removed/no-op in Migurinth.
+- Migurinth 0.21.5-migurinth.2 removes the remaining launcher ad surface rather than merely no-oping it: the ad helper and promotion component are deleted, the consent event contract is removed and regenerated, Modrinth+ upsell UI is absent, ad page-context flags are fixed to false, and obsolete translated ad-consent strings are pruned.
+- The Retro appearance theme is exposed to normal Migurinth users; no Modrinth server-side subscription or profile-badge entitlement is forged.
 - A production pnpm audit filtered to `@modrinth/app-frontend` reports 0 advisories after
   Migurinth's dependency/privacy changes. The same audit on current Modrinth `main`
   reports 27 launcher-path advisories, including high/critical entries via PostHog and

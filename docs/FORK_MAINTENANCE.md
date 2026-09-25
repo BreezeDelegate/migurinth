@@ -25,13 +25,14 @@ Keep these behaviors when syncing from Modrinth:
 1. Migurinth product name, application identifier, icons, user agent, and visible branding.
 2. Offline Minecraft accounts with 3-16 character ASCII usernames (`A-Z`, `a-z`, `0-9`, `_`).
 3. Portable data mode using `MigurinthData` next to the executable when enabled.
-4. No Modrinth ads window or ads-consent bridge.
+4. No Modrinth ads window, ads-consent bridge, promotional ad placeholder, or Modrinth+ upsell UI. Keep the shared page-context ad flags hard-disabled for compatibility with reusable UI components.
 5. No PostHog analytics and no Sentry client reporting in the launcher frontend.
 6. No survey bootstrap or third-party Tally script.
 7. Updater endpoint must use `BreezeDelegate/migurinth` releases and the BreezeDelegate
    Tauri updater public key. The private updater key must never be committed.
 8. Preserve dependency overrides in `pnpm-workspace.yaml` that keep the launcher frontend
    clear of known npm advisories.
+9. Migurinth-owned local appearance options must not be artificially hidden behind developer mode. The Retro theme is available to normal users alongside Dark, Light, OLED, and System.
 
 ## Sync procedure
 

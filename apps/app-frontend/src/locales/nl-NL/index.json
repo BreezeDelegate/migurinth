@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "Bekijk logs"
   },
-  "app.ads-consent.accept": {
-    "message": "Alles accepteren"
-  },
-  "app.ads-consent.body": {
-    "message": "Advertenties maken Modrinth mogelijk en financieren de uitbetalingen aan makers. Onze partners kunnen cookies in de app opslaan of gebruiken om advertenties te personaliseren en de prestaties te meten."
-  },
-  "app.ads-consent.manage": {
-    "message": "Voorkeuren beheren"
-  },
-  "app.ads-consent.reject": {
-    "message": "Alles afwijzen"
-  },
-  "app.ads-consent.title": {
-    "message": "Uw privacy en hoe advertenties Modrinth ondersteunen"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "Toon bibliotheek instanties in een compacte row lay-out."
   },
@@ -1379,9 +1364,6 @@
   "app.nav.switch-account": {
     "message": "Van account wisselen"
   },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "Upgrade naar Modrinth+"
-  },
   "app.nav.view-profile": {
     "message": "Profiel bekijken"
   },
@@ -2614,9 +2596,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "Advertenties maken Modrinth mogelijk en financieren de uitbetalingen aan makers. Onze partners kunnen cookies in de app opslaan of gebruiken om advertenties te personaliseren en de prestaties te meten. Je kunt je hieronder afmelden of je voorkeuren beheren."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "Laat Modrinth als jouw activiteit op Discord. Dit verandert niet activiteiten toegevoegd door mods."

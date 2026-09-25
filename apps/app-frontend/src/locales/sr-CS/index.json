@@ -122,21 +122,6 @@
   "app.action-bar.view-logs": {
     "message": "Pregledaj dnevnike"
   },
-  "app.ads-consent.accept": {
-    "message": "Prihvati sve"
-  },
-  "app.ads-consent.body": {
-    "message": "Reklame omogućavaju da Modrinth radi i finansiraju isplate kreatorima. Naši partneri mogu da čuvaju i koriste kolačiće u aplikaciji da bi personalizovali reklame i merili performanse."
-  },
-  "app.ads-consent.manage": {
-    "message": "Upravljaj podešavanjima"
-  },
-  "app.ads-consent.reject": {
-    "message": "Odbij sve"
-  },
-  "app.ads-consent.title": {
-    "message": "Tvoja bezbednost i kako reklame pomažu Modrinth-u"
-  },
   "app.appearance-settings.default-landing-page.home": {
     "message": "Početna stranica"
   },

@@ -131,21 +131,6 @@
   "app.action-bar.view-logs": {
     "message": "عرض السجلات"
   },
-  "app.ads-consent.accept": {
-    "message": "قبول الكل"
-  },
-  "app.ads-consent.body": {
-    "message": "تُتيح الإعلانات استمرارية Modrinth وتُمول مدفوعات المنشئين. قد يقوم شركاؤنا بتخزين أو الوصول إلى ملفات تعريف الارتباط (cookies) في التطبيق لتخصيص الإعلانات وقياس الأداء."
-  },
-  "app.ads-consent.manage": {
-    "message": "إدارة التفضيلات"
-  },
-  "app.ads-consent.reject": {
-    "message": "رفض الكل"
-  },
-  "app.ads-consent.title": {
-    "message": "خصوصيتك وكيف تساهم الإعلانات في دعم Modrinth"
-  },
   "app.appearance-settings.compact-mode.description": {
     "message": "عرض مثيلات المكتبة بتنسيق صفّي مضغوط."
   },
@@ -1268,9 +1253,6 @@
   "app.nav.switch-account": {
     "message": "تبديل الحساب"
   },
-  "app.nav.upgrade-to-modrinth-plus": {
-    "message": "الترقية إلى Modrinth+"
-  },
   "app.nav.view-profile": {
     "message": "عرض الملف الشخصي"
   },
@@ -1711,9 +1693,6 @@
   },
   "app.settings.operating-system.macos": {
     "message": "macOS"
-  },
-  "app.settings.privacy.ads-consent.intro": {
-    "message": "الإعلانات تجعل Modrinth ممكناً وتمول مدفوعات المنشئين. قد يقوم شركاؤنا بتخزين أو الوصول إلى ملفات تعريف الارتباط (cookies) في التطبيق لتخصيص الإعلانات وقياس الأداء. يمكنك إلغاء الاشتراك أو إدارة تفضيلاتك أدناه."
   },
   "app.settings.privacy.discord-rich-presence.description": {
     "message": "إظهار تطبيق Modrinth كنشاطك الحالي على Discord. لا يؤثر هذا على الـ Rich Presence المُضاف للنسخ بواسطة المودات. يتطلب إعادة تشغيل التطبيق."
