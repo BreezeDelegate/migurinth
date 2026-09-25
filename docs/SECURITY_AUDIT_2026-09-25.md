@@ -41,6 +41,16 @@ refresh. The historical fork had not integrated current Modrinth since early 202
 - The Migurinth offline-username validation unit test passes.
 - Launcher frontend TypeScript check and production Vite build pass on Node 24.15.0 / pnpm
   10.33.2.
+- Windows GNU cross-check and release build pass on the canonical Linux VPS. The produced PE is
+  x86-64/GUI, reserves approximately 16 MiB of stack, and has no non-system runtime dependency
+  beyond the bundled `WebView2Loader.dll`.
+- The maintained NSIS installer builds with warnings treated as errors. Its extracted launcher and
+  WebView2 payloads match the original SHA-256 values exactly. A disposable Wine smoke verified
+  silent install, uninstall metadata, `modrinth://` and `.mrpack` registration, then silent
+  uninstall and cleanup.
+- Linux updater bundles and the Windows NSIS installer are signed with the fork's Tauri updater key;
+  signatures were independently verified with Minisign against the public key embedded in the
+  release configuration.
 
 ## Limits
 

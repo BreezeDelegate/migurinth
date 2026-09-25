@@ -1,6 +1,8 @@
-# Windows has stack overflows when calling from Tauri, so we increase the default stack size used by the compiler
-[target."cfg(windows)"]
-rustflags = ["-C", "link-args=/STACK:16777220"]
-
+# Windows has stack overflows when calling from Tauri, so we increase the default stack size used by the compiler.
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld"
+rustflags = ["-C", "link-args=/STACK:16777220"]
+
+# Keep the same stack size when cross-compiling the Windows build from Linux.
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-args=-Wl,--stack,16777220"]

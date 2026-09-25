@@ -48,6 +48,27 @@ Keep these behaviors when syncing from Modrinth:
    bundles.
 9. Sign updater artifacts only with the private key stored outside the repository.
 
+## Windows release from the canonical Linux VPS
+
+GitHub-hosted Windows compute is not required for the unsigned Windows build. The canonical VPS
+can cross-compile the launcher with `x86_64-pc-windows-gnu`, then package it with the maintained
+`apps/app/nsis/migurinth-cross-build.nsi` template. The target-specific stack linker flags live in
+`.cargo/config.toml`: MSVC keeps `/STACK:16777220`, while MinGW uses
+`-Wl,--stack,16777220`.
+
+The Linux-hosted Tauri CLI cannot emit an NSIS bundle directly, so the Windows release sequence is:
+
+1. cross-compile `theseus_gui` for `x86_64-pc-windows-gnu` with the updater/custom-protocol features;
+2. package `theseus_gui.exe` plus `WebView2Loader.dll` with the committed NSIS template using
+   `makensis -WX`;
+3. verify the payload hashes after extracting the installer;
+4. run a silent install/uninstall smoke in a disposable Wine prefix;
+5. sign the final setup with the Tauri updater private key stored outside Git and verify the
+   signature against the committed updater public key.
+
+This produces an updater-authenticated installer but does not add Microsoft Authenticode signing.
+Do not reintroduce Modrinth's DigiCert signing secrets or external CI credentials into this fork.
+
 ## Public contributions
 
 Upstreamable fixes must be isolated from Migurinth-specific branding/privacy changes.
