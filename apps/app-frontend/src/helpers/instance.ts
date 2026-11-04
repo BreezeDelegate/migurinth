@@ -608,8 +608,9 @@ export async function get_pack_export_candidates(
 export async function run(
 	instanceId: string,
 	serverAddress: string | null = null,
+	accountId: string | null = null,
 ): Promise<unknown> {
-	return await invoke('plugin:instance|instance_run', { instanceId, serverAddress })
+	return await invoke('plugin:instance|instance_run', { instanceId, serverAddress, accountId })
 }
 
 export async function kill(instanceId: string): Promise<void> {

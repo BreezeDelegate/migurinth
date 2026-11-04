@@ -31,6 +31,7 @@
 			/>
 			<InstancePageHeader
 				:instance="instance"
+				:launch-accounts="launchAccounts"
 				:icon-src="icon"
 				:is-server-instance="isServerInstance"
 				:show-instance-play-time="showInstancePlayTime"
@@ -46,6 +47,7 @@
 				@repair="() => repairInstance()"
 				@stop="() => stopInstance('InstancePage')"
 				@play="() => startInstance('InstancePage')"
+				@play-with-account="(accountId) => startInstance('InstancePage', accountId)"
 				@play-server="() => handlePlayServer()"
 				@settings="() => settingsModal?.show()"
 				@open-folder="() => instance && showInstanceInFolder(instance.id)"
@@ -129,6 +131,7 @@ import { useAppSettings } from '@/composables/use-app-settings.ts'
 import { handleSevereError } from '@/composables/use-error.js'
 import { useInstanceConsole } from '@/composables/useInstanceConsole'
 import { trackEvent } from '@/helpers/analytics'
+import { users } from '@/helpers/auth'
 import { toError } from '@/helpers/errors'
 import {
 	getSharedInstanceUnavailableReason,
@@ -233,6 +236,21 @@ useQuery(
 	})),
 )
 const instance = computed(() => instanceQuery.data.value)
+const launchAccountsQuery = useQuery({
+	queryKey: ['migurinth', 'minecraft-launch-accounts'],
+	queryFn: async (): Promise<{ id: string; name: string }[]> => {
+		const credentials = (await users()) as { profile?: { id?: string; name?: string } }[]
+		return credentials
+			.filter((credential) => credential.profile?.id && credential.profile?.name)
+			.map((credential) => ({
+				id: credential.profile!.id!,
+				name: credential.profile!.name!,
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name))
+	},
+	staleTime: 10_000,
+})
+const launchAccounts = computed(() => launchAccountsQuery.data.value ?? [])
 async function invalidateContent(targetInstanceId: string) {
 	await Promise.all([
 		queryClient.invalidateQueries({ queryKey: instanceKeys.content(targetInstanceId) }),
@@ -575,12 +593,12 @@ watch(
 
 const options = ref<InstanceType<typeof ContextMenu> | null>(null)
 
-const launchInstance = async (context: string) => {
+const launchInstance = async (context: string, accountId?: string) => {
 	if (!instance.value || instance.value.quarantined) return
 	const currentInstance = instance.value
 	loading.value = true
 	try {
-		await run(currentInstance.id)
+		await run(currentInstance.id, null, accountId ?? null)
 		queryClient.setQueryData(instanceKeys.processes(currentInstance.id), [true])
 	} catch (err) {
 		handleSevereError(err, { instanceId: currentInstance.id })
@@ -634,7 +652,7 @@ function handleSharedInstanceUpdateComplete(successful: boolean) {
 	}
 }
 
-const startInstance = async (context: string) => {
+const startInstance = async (context: string, accountId?: string) => {
 	if (!instance.value || instance.value.quarantined) return
 	if (checkingSharedInstanceLaunch.value || loading.value || playing.value) return
 
@@ -663,7 +681,7 @@ const startInstance = async (context: string) => {
 		if (preview?.updateAvailable && sharedInstanceUpdateModal.value) {
 			sharedInstanceUpdateModal.value.show(instance.value, preview, async () => {
 				await refreshInstance()
-				await launchInstance(context)
+				await launchInstance(context, accountId)
 			})
 			return
 		}
@@ -673,7 +691,7 @@ const startInstance = async (context: string) => {
 		if (isSharedInstanceMember) {
 			updateToPlayModal.value.show(instance.value, null, async () => {
 				await refreshInstance()
-				await launchInstance(context)
+				await launchInstance(context, accountId)
 			})
 		} else {
 			updateToPlayModal.value.show(instance.value)
@@ -681,7 +699,7 @@ const startInstance = async (context: string) => {
 		return
 	}
 
-	await launchInstance(context)
+	await launchInstance(context, accountId)
 }
 
 const stopInstance = async (context: string) => {

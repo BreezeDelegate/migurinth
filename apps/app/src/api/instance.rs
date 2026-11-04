@@ -1331,12 +1331,20 @@ pub async fn instance_get_pack_export_candidates(
 pub async fn instance_run(
     instance_id: &str,
     server_address: Option<String>,
+    account_id: Option<uuid::Uuid>,
 ) -> Result<ProcessMetadata> {
     let quick_play = match server_address {
         Some(addr) => QuickPlayType::Server(ServerAddress::Unresolved(addr)),
         None => QuickPlayType::None,
     };
-    Ok(theseus::instance::run(instance_id, quick_play).await?)
+    Ok(
+        theseus::instance::run_with_account(
+            instance_id,
+            quick_play,
+            account_id,
+        )
+        .await?,
+    )
 }
 
 #[tauri::command]

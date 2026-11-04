@@ -129,6 +129,18 @@
 					<PlayIcon />
 					{{ formatMessage(commonMessages.playButton) }}
 				</SplitButton>
+				<SplitButton
+					v-else-if="!loading && launchAccounts.length > 1"
+					type="colored"
+					color="brand"
+					size="xl"
+					:options="accountPlayOptions"
+					:menu-label="formatMessage(messages.chooseAccount)"
+					@click="emit('play')"
+				>
+					<PlayIcon />
+					{{ formatMessage(commonMessages.playButton) }}
+				</SplitButton>
 				<Button
 					v-else-if="!loading"
 					type="colored"
@@ -224,6 +236,14 @@ const messages = defineMessages({
 		id: 'instance.action.launch-instance',
 		defaultMessage: 'Launch instance',
 	},
+	chooseAccount: {
+		id: 'migurinth.instance.choose-account',
+		defaultMessage: 'Choose Minecraft account',
+	},
+	playAsAccount: {
+		id: 'migurinth.instance.play-as-account',
+		defaultMessage: 'Play as {account}',
+	},
 	moreActions: {
 		id: 'instance.action.more-actions',
 		defaultMessage: 'More actions',
@@ -269,6 +289,7 @@ const messages = defineMessages({
 const props = withDefaults(
 	defineProps<{
 		instance: GameInstance
+		launchAccounts?: { id: string; name: string }[]
 		iconSrc?: string | null
 		isServerInstance?: boolean
 		showInstancePlayTime?: boolean
@@ -284,6 +305,7 @@ const props = withDefaults(
 	}>(),
 	{
 		iconSrc: null,
+		launchAccounts: () => [],
 		isServerInstance: false,
 		showInstancePlayTime: false,
 		timePlayed: 0,
@@ -302,6 +324,7 @@ const emit = defineEmits<{
 	repair: []
 	stop: []
 	play: []
+	playWithAccount: [accountId: string]
 	playServer: []
 	settings: []
 	openFolder: []
@@ -350,6 +373,14 @@ const playtimeLabel = computed(() => {
 
 	return `${seconds} second${seconds === 1 ? '' : 's'}`
 })
+const accountPlayOptions = computed<ButtonMenuOption[]>(() =>
+	props.launchAccounts.map((account) => ({
+		id: `launch_account_${account.id}`,
+		label: formatMessage(messages.playAsAccount, { account: account.name }),
+		icon: PlayIcon,
+		action: () => emit('playWithAccount', account.id),
+	})),
+)
 const serverPlayOptions = computed<ButtonMenuOption[]>(() => [
 	{
 		id: 'launch_instance',
@@ -357,6 +388,7 @@ const serverPlayOptions = computed<ButtonMenuOption[]>(() => [
 		icon: PlayIcon,
 		action: () => emit('play'),
 	},
+	...accountPlayOptions.value,
 ])
 const moreActions = computed<ButtonMenuOption[]>(() => {
 	const actions: ButtonMenuOption[] = [

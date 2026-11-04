@@ -4409,6 +4409,12 @@
   "instance.worlds.world_in_use": {
     "message": "World is in use"
   },
+  "migurinth.instance.choose-account": {
+    "message": "Choose Minecraft account"
+  },
+  "migurinth.instance.play-as-account": {
+    "message": "Play as {account}"
+  },
   "minecraft-account.add-account": {
     "message": "Add account"
   },

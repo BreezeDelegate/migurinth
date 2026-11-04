@@ -84,3 +84,13 @@ signing secrets into this fork.
 Upstreamable fixes must be isolated from Migurinth-specific branding/privacy changes.
 The first cleanup found during the 2026-09-25 audit is proposed independently as
 `modrinth/code#7702` (remove stale committed Java `.class` artifacts).
+
+## Concurrent Minecraft sessions (0.21.5-migurinth.3)
+
+Migurinth supports multiple Minecraft processes simultaneously only when each process uses a **different instance directory**. One process per instance remains enforced to protect saves, logs, configuration and updates from concurrent writes. The launcher itself stays a single Tauri application.
+
+With two or more Minecraft accounts saved, each instance page includes a Play dropdown listing "Play as [account]" actions. Ordinary Play uses the global default account; an explicitly chosen account is passed only to that game launch and never changes the global selection or other running processes. Unavailable accounts are rejected. The same choice is offered for server-linked instances.
+
+To test with two players, add both identities, prepare two distinct instances of the same pack, launch the primary normally and the secondary through "Play as". Do not disable the per-instance lock. This functionality uses standard Minecraft authentication.
+
+Gates: frontend pre-PR, Rust format checks, Windows MSVC release cross-build and NSIS packaging/smoke tests where supported. Actual signed-in two-client gameplay still requires interactive owner testing.

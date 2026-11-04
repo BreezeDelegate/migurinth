@@ -24,6 +24,15 @@ pub async fn run(
     instance_id: &str,
     quick_play_type: QuickPlayType,
 ) -> crate::Result<ProcessMetadata> {
+    run_with_account(instance_id, quick_play_type, None).await
+}
+
+#[tracing::instrument]
+pub async fn run_with_account(
+    instance_id: &str,
+    quick_play_type: QuickPlayType,
+    account_id: Option<uuid::Uuid>,
+) -> crate::Result<ProcessMetadata> {
     let state = State::get().await?;
     if crate::state::instances::adapters::sqlite::instance_rows::is_instance_quarantined(
         instance_id,
@@ -52,11 +61,28 @@ pub async fn run(
     )
     .await?;
 
-    let default_account = Credentials::get_default_credential(&state.pool)
-        .await?
-        .ok_or_else(|| crate::ErrorKind::NoCredentialsError.as_error())?;
+    let credentials = if let Some(account_id) = account_id {
+        // Resolve the requested account independently of the global default.
+        // Each launch receives its own credentials, so a second launch cannot
+        // accidentally switch the identity of a game that is already running.
+        Credentials::get_all(&state.pool)
+            .await?
+            .remove(&account_id)
+            .map(|(_, credentials)| credentials)
+            .ok_or_else(|| {
+                crate::ErrorKind::InputError(
+                    "The selected Minecraft account is no longer available"
+                        .to_string(),
+                )
+                .as_error()
+            })?
+    } else {
+        Credentials::get_default_credential(&state.pool)
+            .await?
+            .ok_or_else(|| crate::ErrorKind::NoCredentialsError.as_error())?
+    };
 
-    run_credentials(instance_id, &default_account, quick_play_type).await
+    run_credentials(instance_id, &credentials, quick_play_type).await
 }
 
 #[tracing::instrument(skip(credentials))]
