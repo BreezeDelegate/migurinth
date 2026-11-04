@@ -10,6 +10,7 @@ use quick_xml::Reader;
 use quick_xml::events::Event;
 use serde::Deserialize;
 use serde::Serialize;
+use sqlx::Row;
 use std::collections::VecDeque;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
@@ -148,6 +149,51 @@ pub(crate) async fn instance_has_running_process(
     Ok(running)
 }
 
+pub(crate) async fn instance_has_running_process_for_account(
+    instance_id: &str,
+    account_id: Uuid,
+    state: &crate::State,
+) -> crate::Result<bool> {
+    if state.process_manager.get_all().iter().any(|process| {
+        process.instance_id == instance_id && process.account_id == account_id
+    }) {
+        return Ok(true);
+    }
+
+    // A persisted process may still be running after the launcher restarts.
+    // Legacy rows have no account id and are conservatively treated as locked.
+    let rows = sqlx::query(
+        "SELECT pid, start_time, account_id FROM processes WHERE instance_id = ?"
+    )
+    .bind(instance_id)
+    .fetch_all(&state.pool)
+    .await?;
+    let system = sysinfo::System::new_all();
+    let mut running = false;
+    for row in rows {
+        let pid: i64 = row.try_get("pid")?;
+        let start_time: i64 = row.try_get("start_time")?;
+        let owner: Option<String> = row.try_get("account_id")?;
+        let is_running = u32::try_from(pid)
+            .ok()
+            .and_then(|pid| system.process(sysinfo::Pid::from_u32(pid)))
+            .is_some_and(|process| {
+                process.start_time().abs_diff(start_time as u64) <= 2
+            });
+        if is_running {
+            if owner
+                .as_deref()
+                .is_none_or(|owner| owner == account_id.to_string())
+            {
+                running = true;
+            }
+        } else {
+            clear_persisted_process(state, Some((pid, start_time))).await;
+        }
+    }
+    Ok(running)
+}
+
 pub struct ProcessManager {
     processes: DashMap<Uuid, Process>,
 }
@@ -171,6 +217,7 @@ impl ProcessManager {
         instance_id: &str,
         instance_path: &str,
         instance_name: &str,
+        account_id: Uuid,
         mut mc_command: Command,
         post_exit_command: Option<String>,
         post_exit_env_vars: Vec<(String, String)>,
@@ -200,7 +247,13 @@ impl ProcessManager {
 
         let log_path = logs_folder.join(LAUNCHER_LOG_PATH);
 
-        clear_log_buffer(instance_id);
+        if !self
+            .get_all()
+            .iter()
+            .any(|process| process.instance_id == instance_id)
+        {
+            clear_log_buffer(instance_id);
+        }
 
         {
             let mut log_file = OpenOptions::new()
@@ -235,6 +288,7 @@ impl ProcessManager {
                 instance_id: instance_id.to_string(),
                 instance_path: instance_path.to_string(),
                 instance_name: instance_name.to_string(),
+                account_id,
             },
             child: mc_proc,
             rpc_server,
@@ -253,26 +307,25 @@ impl ProcessManager {
         });
         if let Some((pid, start_time)) = persisted_process {
             let post_exit_command = post_exit_command.as_deref();
-            if let Err(error) = sqlx::query!(
-                "
-				INSERT INTO processes
-					(pid, start_time, name, executable, instance_id,
-					 post_exit_command)
-				VALUES (?, ?, ?, ?, ?, ?)
-				ON CONFLICT(pid) DO UPDATE SET
-					start_time = excluded.start_time,
-					name = excluded.name,
-					executable = excluded.executable,
-					instance_id = excluded.instance_id,
-					post_exit_command = excluded.post_exit_command
-				",
-                pid,
-                start_time,
-                instance_name,
-                executable,
-                instance_id,
-                post_exit_command,
+            if let Err(error) = sqlx::query(
+                "INSERT INTO processes
+                 (pid, start_time, name, executable, instance_id, post_exit_command, account_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                 ON CONFLICT(pid) DO UPDATE SET
+                     start_time = excluded.start_time,
+                     name = excluded.name,
+                     executable = excluded.executable,
+                     instance_id = excluded.instance_id,
+                     post_exit_command = excluded.post_exit_command,
+                     account_id = excluded.account_id",
             )
+            .bind(pid)
+            .bind(start_time)
+            .bind(instance_name)
+            .bind(&executable)
+            .bind(instance_id)
+            .bind(post_exit_command)
+            .bind(account_id.to_string())
             .execute(&state.pool)
             .await
             {
@@ -331,6 +384,7 @@ impl ProcessManager {
         tokio::spawn(Process::sequential_process_manager(
             instance_id.to_string(),
             instance_path.to_string(),
+            logs_folder.clone(),
             post_exit_command,
             post_exit_env_vars,
             metadata.uuid,
@@ -401,6 +455,7 @@ pub struct ProcessMetadata {
     pub instance_path: String,
     pub instance_name: String,
     pub start_time: DateTime<Utc>,
+    pub account_id: Uuid,
 }
 
 #[derive(Debug)]
@@ -860,6 +915,7 @@ impl Process {
     async fn sequential_process_manager(
         instance_id: String,
         instance_path: String,
+        logs_folder: PathBuf,
         post_exit_command: Option<String>,
         post_exit_env_vars: Vec<(String, String)>,
         uuid: Uuid,
@@ -972,7 +1028,6 @@ impl Process {
             }
         });
 
-        let logs_folder = state.directories.instance_logs_dir(&instance_path);
         let log_path = logs_folder.join(LAUNCHER_LOG_PATH);
 
         if log_path.exists()

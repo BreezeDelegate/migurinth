@@ -9,9 +9,10 @@ import {
 	useVIntl,
 } from '@modrinth/ui'
 import { useQueries, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useEventListener } from '@vueuse/core'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import InstanceItem from '@/components/ui/world/InstanceItem.vue'
 import {
@@ -25,7 +26,9 @@ import { useAppEvent } from '@/composables/use-app-event'
 import { useAppSettings } from '@/composables/use-app-settings.ts'
 import { handleSevereError } from '@/composables/use-error.js'
 import { trackEvent } from '@/helpers/analytics'
-import { kill, run } from '@/helpers/instance'
+import { get_default_user } from '@/helpers/auth'
+import { run } from '@/helpers/instance'
+import { stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import { get_all } from '@/helpers/process'
 import { traceStartupStep } from '@/helpers/startup-debug'
 import { get_game_versions } from '@/helpers/tags'
@@ -361,7 +364,7 @@ async function playInstance(instance: GameInstance) {
 }
 
 async function stopInstance(path: string) {
-	await kill(path).catch(handleError)
+	await stopCurrentAccountProcess(path).catch(handleError)
 	trackEvent('InstanceStop', {
 		source: 'RecentWorldsList',
 	})
@@ -374,14 +377,23 @@ type ProcessMetadata = {
 	uuid: string
 	instance_id: string
 	start_time: string
+	account_id: string
 }
 
 const processesQuery = useQuery({
 	queryKey: ['processes', 'list'],
 	queryFn: (): Promise<ProcessMetadata[]> => get_all(),
 })
+const selectedAccountId = ref<string | null>(null)
+async function refreshAccount() {
+	selectedAccountId.value = (await get_default_user()) ?? null
+}
+onMounted(() => void refreshAccount())
+useEventListener(window, 'migurinth:account-changed', () => void refreshAccount())
 const runningInstances = computed(() =>
-	(processesQuery.data.value ?? []).map((process) => process.instance_id),
+	(processesQuery.data.value ?? [])
+		.filter((process) => process.account_id === selectedAccountId.value)
+		.map((process) => process.instance_id),
 )
 watch(runningInstances, (running, previous) => {
 	if (

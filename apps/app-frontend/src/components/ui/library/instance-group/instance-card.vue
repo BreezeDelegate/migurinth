@@ -12,8 +12,8 @@ import { useAppEvent } from '@/composables/use-app-event'
 import { handleSevereError } from '@/composables/use-error.js'
 import { trackEvent } from '@/helpers/analytics'
 import { install_existing_instance, install_pack_to_existing_instance } from '@/helpers/install'
-import { kill, run } from '@/helpers/instance'
-import { get_by_instance_id } from '@/helpers/process'
+import { run } from '@/helpers/instance'
+import { getCurrentAccountProcess, stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import type { GameInstance } from '@/helpers/types'
 import { showInstanceInFolder } from '@/helpers/utils.js'
 
@@ -170,9 +170,9 @@ const handleCardKeydown = (event: KeyboardEvent) => {
 }
 
 const checkProcess = async () => {
-	const runningProcesses = (await get_by_instance_id(props.instance.id).catch(handleError)) ?? []
-
-	playing.value = runningProcesses.length > 0
+	const process = await getCurrentAccountProcess(props.instance.id).catch(handleError)
+	playing.value = !!process
+	if (!playing.value && currentEvent.value === 'launched') currentEvent.value = null
 }
 
 const play = async (event: MouseEvent | null, context: string) => {
@@ -195,7 +195,7 @@ const stop = async (event: MouseEvent | null, context: string) => {
 	event?.stopPropagation()
 	playing.value = false
 
-	await kill(props.instance.id).catch(handleError)
+	await stopCurrentAccountProcess(props.instance.id).catch(handleError)
 
 	trackEvent('InstanceStop', {
 		loader: props.instance.loader,
@@ -250,10 +250,10 @@ defineExpose({
 
 useAppEvent('process', (event) => {
 	if (event.instance_id === props.instance.id) {
-		currentEvent.value = event.event
-		playing.value = event.event === 'launched'
+		void checkProcess()
 	}
 })
+useEventListener(window, 'migurinth:account-changed', () => void checkProcess())
 
 onMounted(() => {
 	void checkProcess()

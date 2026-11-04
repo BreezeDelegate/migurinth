@@ -15,6 +15,7 @@ import {
 	useRelativeTime,
 	useVIntl,
 } from '@modrinth/ui'
+import { useEventListener } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -23,8 +24,8 @@ import { useAppEvent } from '@/composables/use-app-event'
 import { handleSevereError } from '@/composables/use-error.js'
 import { trackEvent } from '@/helpers/analytics'
 import { install_existing_instance, install_pack_to_existing_instance } from '@/helpers/install'
-import { getInstanceIconUrl, kill, run } from '@/helpers/instance'
-import { get_by_instance_id } from '@/helpers/process'
+import { getInstanceIconUrl, run } from '@/helpers/instance'
+import { getCurrentAccountProcess, stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import { showInstanceInFolder } from '@/helpers/utils.js'
 
 const { handleError } = injectNotificationManager()
@@ -77,9 +78,8 @@ const seeInstance = async () => {
 }
 
 const checkProcess = async () => {
-	const runningProcesses = await get_by_instance_id(props.instance.id).catch(handleError)
-
-	playing.value = runningProcesses.length > 0
+	playing.value = !!(await getCurrentAccountProcess(props.instance.id).catch(handleError))
+	if (!playing.value && currentEvent.value === 'launched') currentEvent.value = null
 }
 
 const play = async (e, context) => {
@@ -102,7 +102,7 @@ const stop = async (e, context) => {
 	e?.stopPropagation()
 	playing.value = false
 
-	await kill(props.instance.id).catch(handleError)
+	await stopCurrentAccountProcess(props.instance.id).catch(handleError)
 
 	trackEvent('InstanceStop', {
 		loader: props.instance.loader,
@@ -155,13 +155,9 @@ defineExpose({
 const currentEvent = ref(null)
 
 useAppEvent('process', (e) => {
-	if (e.instance_id === props.instance.id) {
-		currentEvent.value = e.event
-		if (e.event === 'finished') {
-			playing.value = false
-		}
-	}
+	if (e.instance_id === props.instance.id) void checkProcess()
 })
+useEventListener(window, 'migurinth:account-changed', () => void checkProcess())
 
 onMounted(() => {
 	checkProcess()

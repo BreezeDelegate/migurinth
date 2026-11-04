@@ -48,6 +48,7 @@
 				@stop="() => stopInstance('InstancePage')"
 				@play="() => startInstance('InstancePage')"
 				@play-with-account="(accountId) => startInstance('InstancePage', accountId)"
+				@stop-with-account="(accountId) => stopInstance('InstancePage', accountId)"
 				@play-server="() => handlePlayServer()"
 				@settings="() => settingsModal?.show()"
 				@open-folder="() => instance && showInstanceInFolder(instance.id)"
@@ -111,10 +112,10 @@ import {
 	useVIntl,
 } from '@modrinth/ui'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { useOnline } from '@vueuse/core'
+import { useEventListener, useOnline } from '@vueuse/core'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { computed, type ComputedRef, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { computed, type ComputedRef, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
 import ExportModal from '@/components/ui/ExportModal.vue'
@@ -131,7 +132,7 @@ import { useAppSettings } from '@/composables/use-app-settings.ts'
 import { handleSevereError } from '@/composables/use-error.js'
 import { useInstanceConsole } from '@/composables/useInstanceConsole'
 import { trackEvent } from '@/helpers/analytics'
-import { users } from '@/helpers/auth'
+import { get_default_user, users } from '@/helpers/auth'
 import { toError } from '@/helpers/errors'
 import {
 	getSharedInstanceUnavailableReason,
@@ -144,12 +145,12 @@ import {
 import {
 	get_full_path,
 	getInstanceIconUrl,
-	kill,
 	refresh_content_updates,
 	remove,
 	run,
 	sync_content_files,
 } from '@/helpers/instance'
+import { kill as killProcess } from '@/helpers/process'
 import { useSharedInstanceErrors } from '@/helpers/shared-instance-errors'
 import type { GameInstance } from '@/helpers/types'
 import { createInstanceShortcut, showInstanceInFolder } from '@/helpers/utils.js'
@@ -236,6 +237,13 @@ useQuery(
 	})),
 )
 const instance = computed(() => instanceQuery.data.value)
+const selectedAccountId = ref<string | null>(null)
+async function refreshSelectedAccount() {
+	selectedAccountId.value = (await get_default_user()) ?? null
+	void launchAccountsQuery.refetch()
+}
+onMounted(() => void refreshSelectedAccount())
+useEventListener(window, 'migurinth:account-changed', () => void refreshSelectedAccount())
 const launchAccountsQuery = useQuery({
 	queryKey: ['migurinth', 'minecraft-launch-accounts'],
 	queryFn: async (): Promise<{ id: string; name: string }[]> => {
@@ -250,7 +258,12 @@ const launchAccountsQuery = useQuery({
 	},
 	staleTime: 10_000,
 })
-const launchAccounts = computed(() => launchAccountsQuery.data.value ?? [])
+const launchAccounts = computed(() =>
+	(launchAccountsQuery.data.value ?? []).map((account) => ({
+		...account,
+		playing: activeProcesses.value.some((process) => process.account_id === account.id),
+	})),
+)
 async function invalidateContent(targetInstanceId: string) {
 	await Promise.all([
 		queryClient.invalidateQueries({ queryKey: instanceKeys.content(targetInstanceId) }),
@@ -321,7 +334,19 @@ const processesQuery = useQuery(
 		enabled: !!instanceId.value,
 	})),
 )
-const playing = computed(() => (processesQuery.data.value?.length ?? 0) > 0)
+type AccountProcess = { uuid: string; account_id: string }
+const activeProcesses = computed(() =>
+	(processesQuery.data.value ?? []).filter(
+		(process): process is AccountProcess =>
+			typeof process === 'object' &&
+			process !== null &&
+			typeof process.uuid === 'string' &&
+			typeof process.account_id === 'string',
+	),
+)
+const playing = computed(() =>
+	activeProcesses.value.some((process) => process.account_id === selectedAccountId.value),
+)
 
 async function ensureCriticalContent(targetInstanceId: string) {
 	await queryClient.ensureQueryData(
@@ -598,8 +623,8 @@ const launchInstance = async (context: string, accountId?: string) => {
 	const currentInstance = instance.value
 	loading.value = true
 	try {
-		await run(currentInstance.id, null, accountId ?? null)
-		queryClient.setQueryData(instanceKeys.processes(currentInstance.id), [true])
+		await run(currentInstance.id, null, accountId ?? selectedAccountId.value)
+		await processesQuery.refetch()
 	} catch (err) {
 		handleSevereError(err, { instanceId: currentInstance.id })
 	}
@@ -654,7 +679,9 @@ function handleSharedInstanceUpdateComplete(successful: boolean) {
 
 const startInstance = async (context: string, accountId?: string) => {
 	if (!instance.value || instance.value.quarantined) return
-	if (checkingSharedInstanceLaunch.value || loading.value || playing.value) return
+	const targetAccountId = accountId ?? selectedAccountId.value ?? undefined
+	if (checkingSharedInstanceLaunch.value || loading.value) return
+	if (activeProcesses.value.some((process) => process.account_id === targetAccountId)) return
 
 	const instanceId = instance.value.id
 	const isSharedInstanceMember = instance.value.shared_instance?.role === 'member'
@@ -681,7 +708,7 @@ const startInstance = async (context: string, accountId?: string) => {
 		if (preview?.updateAvailable && sharedInstanceUpdateModal.value) {
 			sharedInstanceUpdateModal.value.show(instance.value, preview, async () => {
 				await refreshInstance()
-				await launchInstance(context, accountId)
+				await launchInstance(context, targetAccountId)
 			})
 			return
 		}
@@ -691,7 +718,7 @@ const startInstance = async (context: string, accountId?: string) => {
 		if (isSharedInstanceMember) {
 			updateToPlayModal.value.show(instance.value, null, async () => {
 				await refreshInstance()
-				await launchInstance(context, accountId)
+				await launchInstance(context, targetAccountId)
 			})
 		} else {
 			updateToPlayModal.value.show(instance.value)
@@ -699,16 +726,26 @@ const startInstance = async (context: string, accountId?: string) => {
 		return
 	}
 
-	await launchInstance(context, accountId)
+	await launchInstance(context, targetAccountId)
 }
 
-const stopInstance = async (context: string) => {
+const stopInstance = async (context: string, accountId?: string) => {
 	const currentInstance = instance.value
 	if (!currentInstance) return
+	const targetAccountId = accountId ?? selectedAccountId.value
+	const targetProcess = activeProcesses.value.find(
+		(process) => process.account_id === targetAccountId,
+	)
+	if (!targetProcess) return
 	stopping.value = true
-	await kill(currentInstance.id).catch((error) => handleError(toError(error)))
-	stopping.value = false
-	queryClient.setQueryData(instanceKeys.processes(currentInstance.id), [])
+	try {
+		await killProcess(targetProcess.uuid)
+		await processesQuery.refetch()
+	} catch (error) {
+		handleError(toError(error))
+	} finally {
+		stopping.value = false
+	}
 
 	trackEvent('InstanceStop', {
 		loader: currentInstance.loader,
@@ -928,11 +965,11 @@ useAppEvent('instance', async (event) => {
 useAppEvent('process', (event) => {
 	if (event.instance_id !== instanceId.value) return
 	if (event.event === 'finished') {
-		queryClient.setQueryData(instanceKeys.processes(event.instance_id), [])
 		useInstanceConsole(event.instance_id).invalidate()
 		void queryClient.invalidateQueries({ queryKey: instanceKeys.logs(event.instance_id) })
-	} else if (event.event === 'launched') {
-		queryClient.setQueryData(instanceKeys.processes(event.instance_id), [true])
+	}
+	if (event.event === 'finished' || event.event === 'launched') {
+		void processesQuery.refetch()
 	}
 })
 

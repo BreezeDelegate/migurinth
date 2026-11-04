@@ -85,12 +85,12 @@ Upstreamable fixes must be isolated from Migurinth-specific branding/privacy cha
 The first cleanup found during the 2026-09-25 audit is proposed independently as
 `modrinth/code#7702` (remove stale committed Java `.class` artifacts).
 
-## Concurrent Minecraft sessions (0.21.5-migurinth.3)
+## Concurrent Minecraft sessions (0.21.5-migurinth.4)
 
-Migurinth supports multiple Minecraft processes simultaneously only when each process uses a **different instance directory**. One process per instance remains enforced to protect saves, logs, configuration and updates from concurrent writes. The launcher itself stays a single Tauri application.
+One Migurinth launcher can run the same installed pack once per saved Minecraft account. The instance page, library cards, home quick launch and quick switcher show the Play/Stop state for the selected Minecraft account, not merely the first game process. Switching the global account never stops another account's game. A process is stopped by its individual UUID, not by killing every process of the instance.
 
-With two or more Minecraft accounts saved, each instance page includes a Play dropdown listing "Play as [account]" actions. Ordinary Play uses the global default account; an explicitly chosen account is passed only to that game launch and never changes the global selection or other running processes. Unavailable accounts are rejected. The same choice is offered for server-linked instances.
+The first account launched on an existing instance is permanently designated its primary account and retains the original game directory, settings and saves. Other accounts transparently receive a managed game directory at config_dir/account-sessions/<instance-id>/<account-id>, with their own logs, configuration and saves. Static mod jars are hard-linked from the same installed pack when possible and copied otherwise. Mods are refreshed from the main instance before every secondary launch, while the secondary account's configuration is preserved. Session folders stay outside the managed profile and are not deleted on game exit.
 
-To test with two players, add both identities, prepare two distinct instances of the same pack, launch the primary normally and the secondary through "Play as". Do not disable the per-instance lock. This functionality uses standard Minecraft authentication.
+Per-account identity is recorded in process metadata and in the migrated processes table. Startup refuses a duplicate process for the same account, including still-live processes persisted across launcher restarts. Legacy unidentifiable processes remain guarded. Different accounts can run concurrently without sharing a writable game directory. The instance-content lock serializes this check with process creation.
 
-Gates: frontend pre-PR, Rust format checks, Windows MSVC release cross-build and NSIS packaging/smoke tests where supported. Actual signed-in two-client gameplay still requires interactive owner testing.
+The native Windows executable still has a single launcher window. To test, log in both Minecraft accounts, run the instance with the first account, switch to the second account and press Play again without restarting Migurinth. Switching back shows Stop for the first account and does not affect the second. Offline accounts still respect the target server's authentication requirements.

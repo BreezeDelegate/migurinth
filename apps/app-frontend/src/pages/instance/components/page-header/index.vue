@@ -244,6 +244,10 @@ const messages = defineMessages({
 		id: 'migurinth.instance.play-as-account',
 		defaultMessage: 'Play as {account}',
 	},
+	stopAccount: {
+		id: 'migurinth.instance.stop-account',
+		defaultMessage: 'Stop {account}',
+	},
 	moreActions: {
 		id: 'instance.action.more-actions',
 		defaultMessage: 'More actions',
@@ -289,7 +293,7 @@ const messages = defineMessages({
 const props = withDefaults(
 	defineProps<{
 		instance: GameInstance
-		launchAccounts?: { id: string; name: string }[]
+		launchAccounts?: { id: string; name: string; playing: boolean }[]
 		iconSrc?: string | null
 		isServerInstance?: boolean
 		showInstancePlayTime?: boolean
@@ -325,6 +329,7 @@ const emit = defineEmits<{
 	stop: []
 	play: []
 	playWithAccount: [accountId: string]
+	stopWithAccount: [accountId: string]
 	playServer: []
 	settings: []
 	openFolder: []
@@ -376,9 +381,12 @@ const playtimeLabel = computed(() => {
 const accountPlayOptions = computed<ButtonMenuOption[]>(() =>
 	props.launchAccounts.map((account) => ({
 		id: `launch_account_${account.id}`,
-		label: formatMessage(messages.playAsAccount, { account: account.name }),
-		icon: PlayIcon,
-		action: () => emit('playWithAccount', account.id),
+		label: formatMessage(account.playing ? messages.stopAccount : messages.playAsAccount, {
+			account: account.name,
+		}),
+		icon: account.playing ? StopCircleIcon : PlayIcon,
+		action: () =>
+			account.playing ? emit('stopWithAccount', account.id) : emit('playWithAccount', account.id),
 	})),
 )
 const serverPlayOptions = computed<ButtonMenuOption[]>(() => [
@@ -415,6 +423,10 @@ const moreActions = computed<ButtonMenuOption[]>(() => {
 				action: () => emit('createShortcut'),
 			},
 		)
+	}
+
+	if (props.launchAccounts.length > 1) {
+		actions.push({ type: 'divider' }, ...accountPlayOptions.value)
 	}
 
 	if (props.instance.shared_instance?.role === 'member') {

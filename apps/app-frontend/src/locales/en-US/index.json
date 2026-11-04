@@ -4415,6 +4415,9 @@
   "migurinth.instance.play-as-account": {
     "message": "Play as {account}"
   },
+  "migurinth.instance.stop-account": {
+    "message": "Stop {account}"
+  },
   "minecraft-account.add-account": {
     "message": "Add account"
   },

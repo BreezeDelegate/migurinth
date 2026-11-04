@@ -50,7 +50,9 @@ export async function get_default_user() {
  * @param {UUID} user
  */
 export async function set_default_user(user) {
-	return await invoke('plugin:auth|set_default_user', { user })
+	const result = await invoke('plugin:auth|set_default_user', { user })
+	window.dispatchEvent(new Event('migurinth:account-changed'))
+	return result
 }
 
 /**

@@ -25,6 +25,7 @@ import {
 	useVIntl,
 } from '@modrinth/ui'
 import { capitalizeString } from '@modrinth/utils/utils'
+import { useEventListener } from '@vueuse/core'
 import type { Dayjs } from 'dayjs'
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
@@ -32,8 +33,8 @@ import { useRouter } from 'vue-router'
 import { useAppEvent } from '@/composables/use-app-event'
 import { handleSevereError } from '@/composables/use-error.js'
 import { trackEvent } from '@/helpers/analytics'
-import { getInstanceIconUrl, kill, run } from '@/helpers/instance'
-import { get_by_instance_id } from '@/helpers/process'
+import { getInstanceIconUrl, run } from '@/helpers/instance'
+import { getCurrentAccountProcess, stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import type { GameInstance } from '@/helpers/types'
 import { showInstanceInFolder } from '@/helpers/utils'
 import { injectServerInstall } from '@/providers/server-install'
@@ -118,8 +119,7 @@ const play = async (event: MouseEvent) => {
 	try {
 		if (serverProjectId) {
 			await playServerProject(serverProjectId)
-			const processes = await get_by_instance_id(instance.id)
-			if (processes.length > 0) emit('play')
+			if (await getCurrentAccountProcess(instance.id)) emit('play')
 		} else {
 			await run(instance.id)
 			emit('play')
@@ -139,7 +139,7 @@ const play = async (event: MouseEvent) => {
 const stop = async (event: MouseEvent) => {
 	event?.stopPropagation()
 	loading.value = true
-	await kill(props.instance.id).catch(handleError)
+	await stopCurrentAccountProcess(props.instance.id).catch(handleError)
 	trackEvent('InstanceStop', {
 		loader: props.instance.loader,
 		game_version: props.instance.game_version,
@@ -154,14 +154,13 @@ useAppEvent('process', async () => {
 })
 
 const checkProcess = async () => {
-	const runningProcesses = await get_by_instance_id(props.instance.id).catch(handleError)
-
-	playing.value = runningProcesses.length > 0
+	playing.value = !!(await getCurrentAccountProcess(props.instance.id).catch(handleError))
 }
 
 onMounted(() => {
-	checkProcess()
+	void checkProcess()
 })
+useEventListener(window, 'migurinth:account-changed', () => void checkProcess())
 
 const cardOptions = useTemplateRef('cardOptions')
 const showStop = computed(() => playing.value && !loading.value)

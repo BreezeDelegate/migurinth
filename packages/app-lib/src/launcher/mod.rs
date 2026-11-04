@@ -20,7 +20,7 @@ use crate::state::{
 };
 use crate::util::io;
 use crate::util::rpc::RpcServerBuilder;
-use crate::{State, get_resource_file, process};
+use crate::{State, get_resource_file};
 use chrono::Utc;
 use daedalus as d;
 use daedalus::minecraft::{LoggingSide, RuleAction, VersionInfo};
@@ -30,6 +30,7 @@ use std::future::Future;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
+mod account_sessions;
 mod args;
 pub(crate) mod hooks;
 
@@ -954,19 +955,17 @@ pub async fn launch_minecraft(
 
     let env_args = Vec::from(env_args);
 
-    // Check if instance has a running process, and reject running the command if it does
-    let existing_processes = process::get_by_instance_id(&instance.id).await?;
-    if let Some(process) = existing_processes.first() {
+    let account_id = credentials.offline_profile.id;
+    if crate::state::instance_has_running_process_for_account(
+        &instance.id,
+        account_id,
+        &state,
+    )
+    .await?
+    {
         return Err(crate::ErrorKind::LauncherError(format!(
-            "Instance {} is already running as process {}",
-            instance.id, process.uuid
-        ))
-        .as_error());
-    }
-    if crate::state::instance_has_running_process(&instance.id, &state).await? {
-        return Err(crate::ErrorKind::LauncherError(format!(
-            "Instance {} is already running",
-            instance.id
+            "Minecraft is already running for account {} on instance {}",
+            credentials.offline_profile.name, instance.id
         ))
         .as_error());
     }
@@ -1074,27 +1073,7 @@ pub async fn launch_minecraft(
 
     command
         .arg("com.modrinth.theseus.MinecraftLaunch")
-        .arg(version_info.main_class.clone())
-        .args(
-            args::get_minecraft_arguments(
-                args.get(&d::minecraft::ArgumentType::Game)
-                    .map(|x| x.as_slice()),
-                version_info.minecraft_arguments.as_deref(),
-                credentials,
-                &version.id,
-                &version_info.asset_index.id,
-                &instance_path,
-                &state.directories.assets_dir(),
-                &version.type_,
-                *resolution,
-                &java_version.architecture,
-                &quick_play_type,
-                quick_play_version,
-            )
-            .await?
-            .into_iter(),
-        )
-        .current_dir(instance_path.clone());
+        .arg(version_info.main_class.clone());
 
     // CARGO-set DYLD_LIBRARY_PATH breaks Minecraft on macOS during testing on playground
     #[cfg(target_os = "macos")]
@@ -1139,13 +1118,46 @@ pub async fn launch_minecraft(
     let _store_lease = state.content_store.lease().await;
     state.content_store.recover(Some(&instance.id)).await?;
     // state.content_store.validate_instance(instance).await?;
-    if crate::state::instance_has_running_process(&instance.id, &state).await? {
+    if crate::state::instance_has_running_process_for_account(
+        &instance.id,
+        account_id,
+        &state,
+    )
+    .await?
+    {
         return Err(crate::ErrorKind::LauncherError(format!(
-            "Instance {} is already running",
-            instance.id
+            "Minecraft is already running for account {} on instance {}",
+            credentials.offline_profile.name, instance.id
         ))
         .as_error());
     }
+
+    let game_directory = account_sessions::game_directory_for_account(
+        &instance_path,
+        &state.directories.config_dir,
+        &instance.id,
+        account_id,
+    )
+    .await?;
+    command.args(
+        args::get_minecraft_arguments(
+            args.get(&d::minecraft::ArgumentType::Game)
+                .map(|x| x.as_slice()),
+            version_info.minecraft_arguments.as_deref(),
+            credentials,
+            &version.id,
+            &version_info.asset_index.id,
+            &game_directory,
+            &state.directories.assets_dir(),
+            &version.type_,
+            *resolution,
+            &java_version.architecture,
+            &quick_play_type,
+            quick_play_version,
+        )
+        .await?,
+    );
+    command.current_dir(&game_directory);
 
     crate::state::instances::commands::set_instance_last_played(
         &instance.id,
@@ -1186,10 +1198,11 @@ pub async fn launch_minecraft(
             &instance.id,
             &instance.path,
             &instance.name,
+            account_id,
             command,
             post_exit_hook,
             env_args,
-            state.directories.instance_logs_dir(&instance.path),
+            game_directory.join("logs"),
             version_info.logging.is_some(),
             main_class_keep_alive,
             rpc_server,

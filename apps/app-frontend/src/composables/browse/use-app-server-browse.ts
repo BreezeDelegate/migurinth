@@ -21,8 +21,8 @@ import {
 	getFreshCachedServerStatus,
 } from '@/composables/instances/use-server-status-query'
 import { useAppEvent } from '@/composables/use-app-event'
-import { kill, list as listInstances } from '@/helpers/instance'
-import { get_by_instance_id } from '@/helpers/process'
+import { list as listInstances } from '@/helpers/instance'
+import { getCurrentAccountProcess, stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import type { GameInstance } from '@/helpers/types'
 import { add_server_to_instance, getServerAddress } from '@/helpers/worlds'
 import { instanceKeys } from '@/pages/instance/query-options'
@@ -89,8 +89,7 @@ export function useAppServerBrowse(options: UseAppServerBrowseOptions) {
 		for (const hit of hits) {
 			const inst = packs.find((pack: GameInstance) => pack.link?.project_id === hit.project_id)
 			if (inst) {
-				const processes = await get_by_instance_id(inst.id).catch(() => [])
-				if (Array.isArray(processes) && processes.length > 0) {
+				if (await getCurrentAccountProcess(inst.id).catch(() => null)) {
 					newRunning[hit.project_id] = inst.id
 				}
 			}
@@ -103,7 +102,7 @@ export function useAppServerBrowse(options: UseAppServerBrowseOptions) {
 		debugLog('handleStopServerProject', projectId)
 		const instanceId = runningServerProjects.value[projectId]
 		if (!instanceId) return
-		await kill(instanceId).catch(() => {})
+		await stopCurrentAccountProcess(instanceId).catch(() => {})
 		const { [projectId]: _, ...rest } = runningServerProjects.value
 		runningServerProjects.value = rest
 	}
@@ -293,14 +292,8 @@ export function useAppServerBrowse(options: UseAppServerBrowseOptions) {
 
 	useAppEvent('process', (event) => {
 		debugLog('process event', event)
-		if (event.event === 'finished') {
-			const projectId = Object.entries(runningServerProjects.value).find(
-				([, path]) => path === event.instance_id,
-			)?.[0]
-			if (projectId) {
-				const { [projectId]: _, ...rest } = runningServerProjects.value
-				runningServerProjects.value = rest
-			}
+		if (event.event === 'finished' || event.event === 'launched') {
+			void checkServerRunningStates(lastServerHits.value)
 		}
 	})
 

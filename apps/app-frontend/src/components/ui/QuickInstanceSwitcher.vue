@@ -9,6 +9,7 @@ import {
 	useVIntl,
 } from '@modrinth/ui'
 import { useQuery } from '@tanstack/vue-query'
+import { useEventListener } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -21,7 +22,9 @@ import {
 	useQuickInstanceLimit,
 } from '@/composables/use-quick-instance-limit.ts'
 import { trackEvent } from '@/helpers/analytics'
-import { getInstanceIconUrl, kill, run } from '@/helpers/instance'
+import { get_default_user } from '@/helpers/auth'
+import { getInstanceIconUrl, run } from '@/helpers/instance'
+import { stopCurrentAccountProcess } from '@/helpers/minecraft-sessions'
 import { get_all } from '@/helpers/process'
 import { showInstanceInFolder } from '@/helpers/utils'
 import { instanceListQueryOptions } from '@/pages/instance/query-options'
@@ -176,6 +179,7 @@ const onDividerPointerUp = (event) => {
 await instancesQuery.suspense().catch(handleError)
 
 useAppEvent('process', checkProcesses)
+useEventListener(window, 'migurinth:account-changed', () => void checkProcesses())
 
 onMounted(() => {
 	resizeObserver = new ResizeObserver(updateMaxAuto)
@@ -226,8 +230,13 @@ const dividerTooltip = computed(() => {
 })
 
 async function checkProcesses() {
-	const processes = (await get_all().catch(handleError)) ?? []
-	runningInstances.value = processes.map((process) => process.instance_id)
+	const [accountId, processes] = await Promise.all([
+		get_default_user().catch(handleError),
+		get_all().catch(handleError),
+	])
+	runningInstances.value = (processes ?? [])
+		.filter((process) => process.account_id === accountId)
+		.map((process) => process.instance_id)
 }
 
 async function playInstance(instance) {
@@ -244,7 +253,7 @@ async function playInstance(instance) {
 }
 
 async function stopInstance(instance) {
-	await kill(instance.id).catch(handleError)
+	await stopCurrentAccountProcess(instance.id).catch(handleError)
 	trackEvent('InstanceStop', {
 		loader: instance.loader,
 		game_version: instance.game_version,
