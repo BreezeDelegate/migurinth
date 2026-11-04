@@ -1,3 +1,4 @@
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -60,10 +61,17 @@ fn prepare_account_directory(
     instance_id: &str,
     account_id: Uuid,
 ) -> io::Result<PathBuf> {
-    let instance_id = Uuid::parse_str(instance_id).map_err(io::Error::other)?;
+    // Instance identifiers are opaque and may contain Windows path separators.
+    // Keep the legacy UUID directory name for existing users; hash all other IDs
+    // into a deterministic, filesystem-safe component without exposing the ID.
+    let safe_instance_id = Uuid::parse_str(instance_id)
+        .map(|uuid| uuid.to_string())
+        .unwrap_or_else(|_| {
+            format!("{:x}", Sha256::digest(instance_id.as_bytes()))
+        });
     let root = config_directory
         .join("account-sessions")
-        .join(instance_id.to_string());
+        .join(safe_instance_id);
     fs::create_dir_all(&root)?;
 
     let primary_file = root.join("primary-account");
@@ -153,6 +161,58 @@ pub async fn game_directory_for_account(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn non_uuid_windows_instance_paths_are_accepted() {
+        let root = tempfile::tempdir().unwrap();
+        let game = root.path().join("game");
+        let meta = root.path().join("meta");
+        fs::create_dir_all(game.join("mods")).unwrap();
+        fs::write(game.join("mods/test.jar"), b"mod").unwrap();
+
+        let primary = Uuid::new_v4();
+        let secondary = Uuid::new_v4();
+        let windows_path = r"\custom-minecraft\my-pack";
+
+        let primary_dir =
+            prepare_account_directory(&game, &meta, windows_path, primary)
+                .unwrap();
+        assert_eq!(primary_dir, game);
+
+        let secondary_dir =
+            prepare_account_directory(&game, &meta, windows_path, secondary)
+                .unwrap();
+        assert_ne!(secondary_dir, game);
+        assert!(secondary_dir.starts_with(meta.join("account-sessions")));
+        assert!(secondary_dir.join("mods/test.jar").exists());
+
+        let secondary_again =
+            prepare_account_directory(&game, &meta, windows_path, secondary)
+                .unwrap();
+        assert_eq!(secondary_dir, secondary_again);
+        assert_eq!(
+            prepare_account_directory(&game, &meta, windows_path, primary)
+                .unwrap(),
+            game
+        );
+
+        let unrelated = prepare_account_directory(
+            &game,
+            &meta,
+            r"\custom-minecraft\other-pack",
+            primary,
+        )
+        .unwrap();
+        assert_eq!(unrelated, game);
+        let unrelated_secondary = prepare_account_directory(
+            &game,
+            &meta,
+            r"\custom-minecraft\other-pack",
+            secondary,
+        )
+        .unwrap();
+        assert_ne!(secondary_dir, unrelated_secondary);
+    }
+
     #[test]
     fn sessions_keep_primary_and_secondary_files_separate() {
         let root = tempfile::tempdir().unwrap();

@@ -94,3 +94,15 @@ The first account launched on an existing instance is permanently designated its
 Per-account identity is recorded in process metadata and in the migrated processes table. Startup refuses a duplicate process for the same account, including still-live processes persisted across launcher restarts. Legacy unidentifiable processes remain guarded. Different accounts can run concurrently without sharing a writable game directory. The instance-content lock serializes this check with process creation.
 
 The native Windows executable still has a single launcher window. To test, log in both Minecraft accounts, run the instance with the first account, switch to the second account and press Play again without restarting Migurinth. Switching back shows Stop for the first account and does not affect the second. Offline accounts still respect the target server's authentication requirements.
+
+## Account session path compatibility (0.21.5-migurinth.5)
+
+Instance IDs are opaque, not guaranteed to be UUIDs. The 0.21.5-migurinth.4
+multi-account feature incorrectly parsed them as UUIDs, preventing launches for
+Windows path-style or other non-UUID IDs. Session directories now use the
+canonical UUID string when the ID is a valid UUID and otherwise its SHA-256
+digest, keeping the path deterministic and safe on Windows without allowing
+path separators or traversal in managed session directories. Existing UUID
+session directories remain compatible. The non-UUID regression test exercises
+a Windows backslash-prefixed identifier and launches with two distinct
+accounts while preserving the primary game path.
