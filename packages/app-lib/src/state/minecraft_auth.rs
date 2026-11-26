@@ -11,7 +11,7 @@ use p256::ecdsa::{Signature, SigningKey, VerifyingKey};
 use p256::pkcs8::{DecodePrivateKey, EncodePrivateKey, LineEnding};
 use rand::Rng;
 use rand::rngs::OsRng;
-use reqwest::header::HeaderMap;
+use reqwest::header::{HeaderMap, RETRY_AFTER};
 use reqwest::{Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::ser::SerializeStruct;
@@ -25,7 +25,7 @@ use std::hash::{BuildHasherDefault, DefaultHasher};
 use std::io;
 use std::ops::Deref;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 use tokio::runtime::{Handle, RuntimeFlavor};
 use tokio::sync::Mutex;
 use tokio::task;
@@ -73,30 +73,14 @@ pub enum MinecraftAuthenticationError {
         #[source]
         source: reqwest::Error,
     },
+    #[error(
+        "Minecraft sign-in is rate limited (429). Try again in {retry_after_secs} seconds."
+    )]
+    RateLimited { retry_after_secs: u64 },
     #[error("Error reading XBOX Session ID header")]
     NoSessionId,
     #[error("Error reading user hash")]
     NoUserHash,
-}
-
-#[derive(Deserialize)]
-struct OAuthErrorResponse {
-    error: String,
-}
-
-impl MinecraftAuthenticationError {
-    fn is_invalid_grant(&self) -> bool {
-        matches!(
-            self,
-            Self::DeserializeResponse {
-                step: MinecraftAuthStep::RefreshOAuthToken,
-                raw,
-                status_code: StatusCode::BAD_REQUEST,
-                ..
-            } if serde_json::from_str::<OAuthErrorResponse>(raw)
-                .is_ok_and(|response| response.error == "invalid_grant")
-        )
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -287,6 +271,8 @@ impl Credentials {
             return Ok(());
         }
 
+        MINECRAFT_TOKEN_GATE.lock().await.check(Instant::now())?;
+        let old_refresh_token = self.refresh_token.clone();
         let oauth_token = oauth_refresh(&self.refresh_token).await?;
         let (pair, current_date) =
             DeviceTokenPair::refresh_and_get_device_token(
@@ -314,13 +300,27 @@ impl Credentials {
 
         let minecraft_token = minecraft_token(xbox_token.value).await?;
 
+        let expires = oauth_token.date
+            + Duration::seconds(oauth_token.value.expires_in as i64);
+        let updated = sqlx::query(
+            "UPDATE minecraft_users SET access_token = ?, refresh_token = ?, expires = ?
+             WHERE uuid = ? AND refresh_token = ?",
+        )
+        .bind(&minecraft_token.access_token)
+        .bind(&oauth_token.value.refresh_token)
+        .bind(expires.timestamp())
+        .bind(self.offline_profile.id.to_string())
+        .bind(old_refresh_token)
+        .execute(exec)
+        .await?;
+        if updated.rows_affected() == 0 {
+            return Err(ErrorKind::InputError(
+                "The selected Minecraft account changed during sign-in. Try again.".into(),
+            ).into());
+        }
         self.access_token = minecraft_token.access_token;
         self.refresh_token = oauth_token.value.refresh_token;
-        self.expires = oauth_token.date
-            + Duration::seconds(oauth_token.value.expires_in as i64);
-
-        self.upsert(exec).await?;
-
+        self.expires = expires;
         Ok(())
     }
 
@@ -474,58 +474,45 @@ impl Credentials {
         )
     }
 
-    /// Like [`get_active`](Self::get_active), but enforces credentials to be
-    /// successfully refreshed unless the network is unreachable or times out.
-    #[tracing::instrument]
-    pub async fn get_default_credential(
+    /// Resolve exactly the requested account, then refresh only that account.
+    pub async fn get_launch_credential(
+        account_id: Option<Uuid>,
         exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
-    ) -> crate::Result<Option<Credentials>> {
-        let credentials = Self::get_active(exec).await?;
-
-        if let Some(mut creds) = credentials {
-            let res = creds.refresh(exec).await;
-
-            match res {
-                Ok(_) => Ok(Some(creds)),
-                Err(err) => {
-                    if let ErrorKind::MinecraftAuthenticationError(
-                        MinecraftAuthenticationError::Request {
-                            ref source,
-                            ..
-                        },
-                    ) = *err.raw
-                        && (source.is_connect() || source.is_timeout())
-                    {
-                        return Ok(Some(creds));
-                    }
-
-                    if matches!(
-                        &*err.raw,
-                        ErrorKind::MinecraftAuthenticationError(source)
-                            if source.is_invalid_grant()
-                    ) {
-                        Self::remove(creds.offline_profile.id, exec).await?;
-
-                        if let Some((_, mut user)) =
-                            Self::get_all(exec).await?.into_iter().next()
-                        {
-                            user.active = true;
-                            user.upsert(exec).await?;
-                        }
-
-                        return Ok(None);
-                    }
-
-                    Err(err)
-                }
-            }
+    ) -> crate::Result<Option<Self>> {
+        let credential = if let Some(id) = account_id {
+            Self::get_all(exec).await?.remove(&id).map(|(_, user)| user)
         } else {
-            Ok(None)
+            Self::get_active(exec).await?
+        };
+        let Some(mut credential) = credential else {
+            return Ok(None);
+        };
+        // Do not switch or remove a saved identity on a refresh failure.
+        // An unexpired token remains usable until its actual expiry.
+        if let Err(err) = credential.refresh(exec).await {
+            let transient = match &*err.raw {
+                ErrorKind::MinecraftAuthenticationError(
+                    MinecraftAuthenticationError::Request { source, .. },
+                ) => source.is_connect() || source.is_timeout(),
+                ErrorKind::MinecraftAuthenticationError(
+                    MinecraftAuthenticationError::RateLimited { .. },
+                ) => true,
+                _ => false,
+            };
+            if !transient || credential.expires <= Utc::now() {
+                return Err(err);
+            }
         }
+        Ok(Some(credential))
     }
 
-    /// Fetches the currently selected credentials from the database, attempting
-    /// to refresh them if they are expired.
+    pub async fn get_default_credential(
+        exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
+    ) -> crate::Result<Option<Self>> {
+        Self::get_launch_credential(None, exec).await
+    }
+
+    /// Selection is local and never attempts to sign in.
     pub async fn get_active(
         exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
     ) -> crate::Result<Option<Self>> {
@@ -542,7 +529,7 @@ impl Credentials {
 
         Ok(match res {
             Some(x) => {
-                let mut credentials = Self {
+                let credentials = Self {
                     offline_profile: MinecraftProfile {
                         id: Uuid::parse_str(&x.uuid).unwrap_or_default(),
                         name: x.username,
@@ -556,7 +543,6 @@ impl Credentials {
                         .unwrap_or_else(Utc::now),
                     active: x.active == 1,
                 };
-                credentials.refresh(exec).await.ok();
                 Some(credentials)
             }
             None => None,
@@ -576,7 +562,7 @@ impl Credentials {
         .fetch(exec)
         .try_fold(DashMap::new(), |acc, x| {
             let uuid = Uuid::parse_str(&x.uuid).unwrap_or_default();
-            let mut credentials = Self {
+            let credentials = Self {
                 offline_profile: MinecraftProfile {
                     id: uuid,
                     name: x.username,
@@ -592,7 +578,6 @@ impl Credentials {
             };
 
             async move {
-                credentials.refresh(exec).await.ok();
                 acc.insert(uuid, credentials);
 
                 Ok(acc)
@@ -601,6 +586,30 @@ impl Credentials {
         .await?;
 
         Ok(res)
+    }
+
+    pub async fn select(
+        uuid: Uuid,
+        exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
+    ) -> crate::Result<()> {
+        let uuid = uuid.to_string();
+        let selected = sqlx::query(
+            "UPDATE minecraft_users SET active = (uuid = ?)
+             WHERE (active = TRUE OR uuid = ?)
+               AND EXISTS (SELECT 1 FROM minecraft_users WHERE uuid = ?)",
+        )
+        .bind(&uuid)
+        .bind(&uuid)
+        .bind(&uuid)
+        .execute(exec)
+        .await?;
+        if selected.rows_affected() == 0 {
+            return Err(ErrorKind::InputError(
+                "The selected Minecraft account is no longer available".into(),
+            )
+            .into());
+        }
+        Ok(())
     }
 
     pub async fn upsert(
@@ -1145,6 +1154,49 @@ async fn xsts_authorize(
     })
 }
 
+#[derive(Default)]
+struct MinecraftTokenGate(Option<Instant>);
+
+static MINECRAFT_TOKEN_GATE: Mutex<MinecraftTokenGate> =
+    Mutex::const_new(MinecraftTokenGate(None));
+
+impl MinecraftTokenGate {
+    fn check(&self, now: Instant) -> Result<(), MinecraftAuthenticationError> {
+        if let Some(wait) =
+            self.0.and_then(|until| until.checked_duration_since(now))
+            && !wait.is_zero()
+        {
+            return Err(MinecraftAuthenticationError::RateLimited {
+                retry_after_secs: wait.as_secs()
+                    + u64::from(wait.subsec_nanos() > 0),
+            });
+        }
+        Ok(())
+    }
+
+    fn defer(
+        &mut self,
+        now: Instant,
+        retry_after: Option<&str>,
+        wall_clock: SystemTime,
+    ) -> u64 {
+        let seconds = retry_after
+            .and_then(|value| {
+                value.parse::<u64>().ok().or_else(|| {
+                    httpdate::parse_http_date(value).ok().map(|date| {
+                        date.duration_since(wall_clock)
+                            .unwrap_or_default()
+                            .as_secs()
+                    })
+                })
+            })
+            .unwrap_or(60)
+            .clamp(1, 24 * 60 * 60);
+        self.0 = Some(now + std::time::Duration::from_secs(seconds));
+        seconds
+    }
+}
+
 #[derive(Deserialize)]
 struct MinecraftToken {
     // pub username: String,
@@ -1153,7 +1205,7 @@ struct MinecraftToken {
     // pub expires_in: u64,
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(token))]
 async fn minecraft_token(
     token: DeviceToken,
 ) -> Result<MinecraftToken, MinecraftAuthenticationError> {
@@ -1165,6 +1217,8 @@ async fn minecraft_token(
         .and_then(|x| x.as_str().map(String::from))
         .ok_or_else(|| MinecraftAuthenticationError::NoUserHash)?;
 
+    let mut gate = MINECRAFT_TOKEN_GATE.lock().await;
+    gate.check(Instant::now())?;
     let token = token.token;
 
     let res = auth_retry(|| {
@@ -1185,6 +1239,19 @@ async fn minecraft_token(
     })?;
 
     let status = res.status();
+    if status == StatusCode::TOO_MANY_REQUESTS {
+        let retry_after_secs = gate.defer(
+            Instant::now(),
+            res.headers()
+                .get(RETRY_AFTER)
+                .and_then(|value| value.to_str().ok()),
+            SystemTime::now(),
+        );
+        return Err(MinecraftAuthenticationError::RateLimited {
+            retry_after_secs,
+        });
+    }
+    drop(gate);
     let text = res.text().await.map_err(|source| {
         MinecraftAuthenticationError::Request {
             source,
@@ -1652,4 +1719,63 @@ fn generate_oauth_challenge() -> String {
 
     let bytes: Vec<u8> = (0..64).map(|_| rng.r#gen::<u8>()).collect();
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+#[cfg(test)]
+mod auth_selection_tests {
+    use super::*;
+    use std::time::Duration as StdDuration;
+
+    #[test]
+    fn rate_limit_waits_until_retry_after_without_a_retry() {
+        let mut gate = MinecraftTokenGate::default();
+        let now = Instant::now();
+        let wall =
+            SystemTime::UNIX_EPOCH + StdDuration::from_secs(1_800_000_000);
+        assert!(gate.check(now).is_ok());
+        assert_eq!(gate.defer(now, Some("120"), wall), 120);
+        assert!(matches!(
+            gate.check(now + StdDuration::from_millis(119_001)),
+            Err(MinecraftAuthenticationError::RateLimited {
+                retry_after_secs: 1
+            })
+        ));
+        assert!(gate.check(now + StdDuration::from_secs(120)).is_ok());
+        assert_eq!(gate.defer(now, Some("bad header"), wall), 60);
+        let date = httpdate::fmt_http_date(wall + StdDuration::from_secs(90));
+        assert_eq!(gate.defer(now, Some(&date), wall), 90);
+    }
+
+    #[tokio::test]
+    async fn choosing_a_saved_account_does_not_refresh_or_change_its_tokens() {
+        let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE minecraft_users (uuid TEXT PRIMARY KEY, active INTEGER NOT NULL,
+             username TEXT NOT NULL, access_token TEXT NOT NULL, refresh_token TEXT NOT NULL,
+             expires INTEGER NOT NULL)",
+        ).execute(&pool).await.unwrap();
+        let first = Uuid::from_u128(1);
+        let selected = Uuid::from_u128(2);
+        for (id, active) in [(first, true), (selected, false)] {
+            sqlx::query("INSERT INTO minecraft_users VALUES (?, ?, 'QA', 'stub', 'stub', 0)")
+                .bind(id.to_string()).bind(active).execute(&pool).await.unwrap();
+        }
+        Credentials::select(selected, &pool).await.unwrap();
+        assert!(
+            Credentials::select(Uuid::from_u128(3), &pool)
+                .await
+                .is_err()
+        );
+        let active = Credentials::get_active(&pool).await.unwrap().unwrap();
+        assert_eq!(active.offline_profile.id, selected);
+        assert_eq!(active.access_token, "stub");
+        assert!(
+            !Credentials::get_all(&pool)
+                .await
+                .unwrap()
+                .get(&first)
+                .unwrap()
+                .active
+        );
+    }
 }

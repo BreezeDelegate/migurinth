@@ -31,15 +31,14 @@ export const minecraftAuthErrors: MinecraftAuthError[] = [
 	},
 	{
 		matches: (message) =>
-			message.includes('Failed to deserialize response to JSON during step MinecraftToken:') &&
-			message.includes('429 Too Many Requests'),
+			message.includes('Minecraft sign-in is rate limited (429)') ||
+			(message.includes('Failed to deserialize response to JSON during step MinecraftToken:') &&
+				message.includes('429 Too Many Requests')),
 		whatHappened:
 			'Microsoft or Minecraft temporarily blocked the sign-in request because there were too many recent attempts.',
 		stepsToFix: [
-			'Wait about an hour before trying again',
-			'Restart Modrinth App after waiting',
-			'Try signing in once more',
-			'If the same message appears, wait longer before retrying so the temporary limit can clear',
+			'Wait for the delay shown before launching again',
+			'Keep the selected Minecraft account; there is no need to remove it or sign in repeatedly',
 		],
 	},
 	{

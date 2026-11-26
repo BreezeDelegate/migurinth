@@ -307,7 +307,7 @@ pub async fn get_available_skins() -> crate::Result<Vec<Skin>> {
     let state = State::get().await?;
 
     let Some(selected_credentials) =
-        Credentials::get_default_credential(&state.pool).await?
+        Credentials::get_active(&state.pool).await?
     else {
         let fallback_default_skin = get_fallback_default_skin()?;
 

@@ -6,6 +6,7 @@
 import type { Labrinth } from '@modrinth/api-client'
 import type { ContentItem, ContentOwner } from '@modrinth/ui'
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
+import { wait_for_account_selection } from './auth.js'
 
 import type { InstallJobSnapshot, SharedInstanceUpdateDiff } from './install'
 import type {
@@ -610,6 +611,7 @@ export async function run(
 	serverAddress: string | null = null,
 	accountId: string | null = null,
 ): Promise<unknown> {
+	if (accountId === null) await wait_for_account_selection()
 	return await invoke('plugin:instance|instance_run', { instanceId, serverAddress, accountId })
 }
 

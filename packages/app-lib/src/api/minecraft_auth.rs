@@ -95,25 +95,14 @@ pub async fn create_offline_credentials(
 #[tracing::instrument]
 pub async fn get_default_user() -> crate::Result<Option<uuid::Uuid>> {
     let state = State::get().await?;
-    let user = Credentials::get_default_credential(&state.pool).await?;
+    let user = Credentials::get_active(&state.pool).await?;
     Ok(user.map(|user| user.offline_profile.id))
 }
 
 #[tracing::instrument]
 pub async fn set_default_user(user: uuid::Uuid) -> crate::Result<()> {
     let state = State::get().await?;
-    let users = Credentials::get_all(&state.pool).await?;
-    let (_, mut user) = users.remove(&user).ok_or_else(|| {
-        crate::ErrorKind::OtherError(format!(
-            "Tried to get nonexistent user with ID {user}"
-        ))
-        .as_error()
-    })?;
-
-    user.active = true;
-    user.upsert(&state.pool).await?;
-
-    Ok(())
+    Credentials::select(user, &state.pool).await
 }
 
 /// Remove a user account from the database
@@ -127,10 +116,9 @@ pub async fn remove_user(uuid: uuid::Uuid) -> crate::Result<()> {
         Credentials::remove(uuid, &state.pool).await?;
 
         if user.active
-            && let Some((_, mut user)) = users.into_iter().next()
+            && let Some((id, _)) = users.into_iter().min_by_key(|(id, _)| *id)
         {
-            user.active = true;
-            user.upsert(&state.pool).await?;
+            Credentials::select(id, &state.pool).await?;
         }
     }
 

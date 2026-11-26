@@ -5,6 +5,8 @@
  */
 import { invoke } from '@tauri-apps/api/core'
 
+let pendingAccountSelection
+
 // Example function:
 // User goes to auth_url to complete flow, and when completed, authenticate_await_completion() returns the credentials
 // export async function authenticate() {
@@ -50,9 +52,28 @@ export async function get_default_user() {
  * @param {UUID} user
  */
 export async function set_default_user(user) {
-	const result = await invoke('plugin:auth|set_default_user', { user })
-	window.dispatchEvent(new Event('migurinth:account-changed'))
-	return result
+	const previous = pendingAccountSelection
+	const selection = (async () => {
+		await previous?.catch(() => {})
+		return await invoke('plugin:auth|set_default_user', { user })
+	})()
+	pendingAccountSelection = selection
+	try {
+		const result = await selection
+		if (pendingAccountSelection === selection) {
+			window.dispatchEvent(new Event('migurinth:account-changed'))
+		}
+		return result
+	} finally {
+		if (pendingAccountSelection === selection) pendingAccountSelection = undefined
+	}
+}
+
+// A Play click immediately after a sidebar selection must not launch the old account.
+export async function wait_for_account_selection() {
+	while (pendingAccountSelection) {
+		await pendingAccountSelection
+	}
 }
 
 /**

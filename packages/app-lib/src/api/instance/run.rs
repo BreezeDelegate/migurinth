@@ -61,26 +61,20 @@ pub async fn run_with_account(
     )
     .await?;
 
-    let credentials = if let Some(account_id) = account_id {
-        // Resolve the requested account independently of the global default.
-        // Each launch receives its own credentials, so a second launch cannot
-        // accidentally switch the identity of a game that is already running.
-        Credentials::get_all(&state.pool)
+    let credentials =
+        Credentials::get_launch_credential(account_id, &state.pool)
             .await?
-            .remove(&account_id)
-            .map(|(_, credentials)| credentials)
             .ok_or_else(|| {
-                crate::ErrorKind::InputError(
-                    "The selected Minecraft account is no longer available"
-                        .to_string(),
-                )
-                .as_error()
-            })?
-    } else {
-        Credentials::get_default_credential(&state.pool)
-            .await?
-            .ok_or_else(|| crate::ErrorKind::NoCredentialsError.as_error())?
-    };
+                if account_id.is_some() {
+                    crate::ErrorKind::InputError(
+                        "The selected Minecraft account is no longer available"
+                            .into(),
+                    )
+                    .as_error()
+                } else {
+                    crate::ErrorKind::NoCredentialsError.as_error()
+                }
+            })?;
 
     run_credentials(instance_id, &credentials, quick_play_type).await
 }

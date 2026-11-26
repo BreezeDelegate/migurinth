@@ -281,8 +281,12 @@ function getAccountAvatarUrl(account: MinecraftCredential) {
 }
 
 async function setAccount(account: MinecraftCredential) {
-	defaultUser.value = account.profile.id
-	await set_default_user(account.profile.id).catch(handleError)
+	try {
+		await set_default_user(account.profile.id)
+	} catch (error) {
+		handleError(error)
+		return
+	}
 	await refreshValues()
 	emit('change')
 }
